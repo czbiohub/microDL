@@ -1,0 +1,49 @@
+dataset:
+    data_dir: '/data'
+    split_ratio:
+        train: 0.7
+        val: 0.15
+        test: 0.15
+    height: 256
+    width: 256
+verbose: 10
+trainer:
+    model_dir: '/models/psf_test'
+    batch_size: 16
+    max_epochs: 200
+    patience: 20
+    metrics: coeff_determination
+    loss: mean_squared_error
+    callbacks:
+        EarlyStopping:
+            mode: min
+            monitor: val_loss
+            patience: 10
+            verbose: True
+        ModelCheckpoint:
+            mode: min
+            monitor: train_loss
+            save_best_only: True
+            verbose: True
+        TensorBoard:
+            histogram_freq: 0
+            verbose: True
+    optimizer:
+        lr: 0.0001
+        name: Adam
+network:
+    class: HybridUNet
+    num_filters_per_block: [16, 32, 48, 64]
+    num_convs_per_block: 2
+    filter_size: 3
+    batch_norm: True
+    activation: relu
+    pooling_type: max
+    dropout: 0.2
+    height: 256
+    width: 256
+    num_focal_planes: 3
+    num_input_channels: 1
+    num_target_channels: 1
+    data_format: 'channels_first'
+    final_activation: elu
