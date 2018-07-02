@@ -41,6 +41,7 @@ def train(config_fname, gpu_id, gpu_mem_frac):
     try:
         input_dir = config['dataset']['data_dir']
         fnames = glob.glob(os.path.join(input_dir, '*.npy'))
+        #  save fnames as a csv to read train, val, test split later
         assert len(fnames) > 0, 'input_dir does not contain any files'
     except IOError as e:
         e.args += 'cannot read images in input_dir'
