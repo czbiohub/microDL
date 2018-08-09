@@ -12,9 +12,13 @@ class BaseDataSet(keras.utils.Sequence):
     https://github.com/aleju/imgaug
     """
 
-    def __init__(self, input_fnames, target_fnames, batch_size,
-                 shuffle=True, augmentations=None, random_seed=42):
+    def __init__(self, input_fnames, target_fnames, batch_size, shuffle=True,
+                 augmentations=None, random_seed=42, normalize=False):
         """Init
+
+        The images could be normalized at the image level during tiling
+        (default, normalize=False). If images were not normalized during tiling
+        set the normalize flag to normalize at the tile-level
 
         :param pd.Series input_fnames: pd.Series with each row containing
          filenames for one input
@@ -30,19 +34,18 @@ class BaseDataSet(keras.utils.Sequence):
         self.input_fnames = input_fnames
         self.target_fnames = target_fnames
         self.batch_size = batch_size
-
         self.shuffle = shuffle
-        num_samples = len(self.input_fnames)
-        self.num_samples = num_samples
+        self.num_samples = len(self.input_fnames)
         self.augmentations = augmentations
         self.random_seed = random_seed
         np.random.seed(random_seed)
+        self.normalize = normalize
         self.on_epoch_end()
 
     def __len__(self):
         """Gets the number of batches per epoch"""
 
-        n_batches = int(self.num_samples / self.batch_size)
+        n_batches = int(np.ceil(self.num_samples / self.batch_size))
         return n_batches
 
     def _augment_image(self, input_image, target_image, mask_image=None):
@@ -60,7 +63,6 @@ class BaseDataSet(keras.utils.Sequence):
         :return: np.ndarrays input_image and target_image of shape
          [batch_size, num_channels, z, y, x]
         """
-
         start_idx = index * self.batch_size
         end_idx = (index + 1) * self.batch_size
         if end_idx >= self.num_samples:
@@ -72,14 +74,21 @@ class BaseDataSet(keras.utils.Sequence):
             cur_input_fnames = self.input_fnames.iloc[self.row_idx[idx]]
             cur_target_fnames = self.target_fnames.iloc[self.row_idx[idx]]
             cur_input = self._get_volume(cur_input_fnames.split(','))
-            cur_input = (cur_input - np.mean(cur_input)) / np.std(cur_input)
             cur_target = self._get_volume(cur_target_fnames.split(','))
-            cur_target = (cur_target - np.mean(cur_target))/np.std(cur_target)
+            # If target is boolean (segmentation masks), convert to float
+            if cur_target.dtype == bool:
+                cur_target = cur_target.astype(np.float64)
+                self.normalize = False
+            if self.normalize:
+                # Only normalize target if we're dealing with regression
+                cur_target = (cur_target - np.mean(cur_target)) /\
+                             np.std(cur_target)
             # _augment_image(cur_input, cur_target)
             input_image.append(cur_input)
             target_image.append(cur_target)
         input_image = np.stack(input_image)
         target_image = np.stack(target_image)
+
         return input_image, target_image
 
     def on_epoch_end(self):
