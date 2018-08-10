@@ -12,7 +12,7 @@ def save_predicted_images(input_batch, target_batch, pred_batch,
     Format: rows of [input, target, pred]
 
     :param np.ndarray input_batch: expected shape [batch_size, n_channels,
-     x,y,z]
+     x,y]
     :param np.ndarray target_batch: target with the same shape of input_batch
     :param np.ndarray pred_batch: output predicted by the model
     :param str output_dir: dir to store the output images/mosaics
@@ -95,3 +95,66 @@ def save_mask_overlay(input_image, mask, op_fname, alpha=0.7):
     ax[2].axis('off')
     fig.savefig(op_fname, dpi=250)
     plt.close(fig)
+
+
+def save_predicted_images_stack(input_batch, target_batch, pred_batch,
+                                output_dir, batch_idx=None):
+    """Saves a batch predicted image to output dir
+
+    Format: rows of [input, target, pred] but input has multiple slices
+    [3, 5..]
+
+    :param np.ndarray input_batch: expected shape [batch_size, n_channels,
+     x,y,z]
+    :param np.ndarray target_batch: target with the expected shape [batch_size,
+     n_channels, x, y, 1]
+    :param np.ndarray pred_batch: output predicted by the model
+    :param str output_dir: dir to store the output images/mosaics
+    :param int batch_idx: current batch number/index
+    """
+
+    batch_size = len(input_batch)
+
+    for img_idx in range(batch_size):
+        cur_input = input_batch[img_idx]
+        cur_target = target_batch[img_idx]
+        cur_prediction = pred_batch[img_idx]
+
+        n_channels = cur_input.shape[-1]
+        fig, ax = plt.subplots(1, n_channels + 2)
+        fig.set_size_inches((5 * (n_channels + 2), 5))
+        axis_count = 0
+        for ch_idx in range(n_channels):
+            ax[axis_count].imshow(cur_input[0, :, :, ch_idx], cmap='gray')
+            ax[axis_count].axis('off')
+            ax[axis_count].set_title('input_{}'.format(ch_idx))
+            axis_count += 1
+        ax[axis_count].imshow(np.squeeze(cur_target[0]), cmap='gray')
+        ax[axis_count].axis('off')
+        ax[axis_count].set_title('target')
+        axis_count += 1
+
+        ax[axis_count].imshow(np.squeeze(cur_prediction[0]), cmap='gray')
+        ax[axis_count].axis('off')
+        ax[axis_count].set_title('prediction')
+
+        # save screenshot
+        fname = os.path.join(
+            output_dir, 'screenshots',
+            '{}.jpg'.format(str(batch_idx * batch_size + img_idx))
+        )
+        fig.savefig(fname, dpi=250)
+        plt.close(fig)
+
+        # save the npy array
+        fname = os.path.join(
+            output_dir,
+            '{}.npy'.format(str(batch_idx * batch_size + img_idx))
+        )
+
+        imarray = np.zeros((cur_input.shape[1], cur_input.shape[2],
+                            n_channels+2))
+        imarray[:, :, :n_channels] = cur_input
+        imarray[:, :, -2] = np.squeeze(cur_target[0])
+        imarray[:, :, -1] = np.squeeze(cur_prediction[0])
+        np.save(fname, imarray)
