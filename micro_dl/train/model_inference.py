@@ -91,6 +91,8 @@ class ModelEvaluator:
         output_dir = os.path.join(self.config['trainer']['model_dir'],
                                   'predicted_tiles')
         os.makedirs(output_dir, exist_ok=True)
+        ss_dir = os.path.join(output_dir, 'screenshots')
+        os.makedirs(ss_dir, exist_ok=True)
 
         if nb_batches is None:
             num_batches = ds_test.__len__()
