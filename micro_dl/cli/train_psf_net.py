@@ -40,7 +40,7 @@ def train(config_fname, gpu_id, gpu_mem_frac):
 
     try:
         input_dir = config['dataset']['data_dir']
-        fnames = glob.glob(os.path.join(input_dir, '*.npy'))
+        fnames = sorted(glob.glob(os.path.join(input_dir, '*.npy')))
         #  save fnames as a csv to read train, val, test split later
         assert len(fnames) > 0, 'input_dir does not contain any files'
     except IOError as e:
@@ -56,16 +56,21 @@ def train(config_fname, gpu_id, gpu_mem_frac):
     split_indices = split_train_val_test(num_samples, train_ratio,
                                          test_ratio, val_ratio)
 
-    #  save split indices for later use, esp for evaluating performance on test
-    split_idx_fname = os.path.join(config['trainer']['model_dir'],
-                                   'split_indices.pkl')
-
-    with open(split_idx_fname, 'wb') as f:
-        pickle.dump(split_indices, f)
-
     fnames = np.array(fnames)
     train_fnames = fnames[split_indices['train']]
     val_fnames = fnames[split_indices['val']]
+    test_fnames = fnames[split_indices['test']]
+    split_fnames= {}
+    split_fnames['train'] = train_fnames
+    split_fnames['val'] = val_fnames
+    split_fnames['test'] = test_fnames
+
+    #  save fnames for later use, esp for evaluating performance on test
+    split_fname = os.path.join(config['trainer']['model_dir'],
+                                   'split_fnames.pkl')
+
+    with open(split_fname, 'wb') as f:
+        pickle.dump(split_fnames, f)
 
     #  create dataset/generator for train/test set
     num_focal_planes = config['network']['num_focal_planes']
@@ -81,6 +86,7 @@ def train(config_fname, gpu_id, gpu_mem_frac):
                                gpu_ids=gpu_id,
                                gpu_mem_frac=gpu_mem_frac)
     trainer.train()
+
 
 
 if __name__ == '__main__':

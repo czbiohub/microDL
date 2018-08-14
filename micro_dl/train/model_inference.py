@@ -77,11 +77,14 @@ class ModelEvaluator:
         test_performance = self.model.evaluate_generator(generator=ds_test)
         return test_performance
 
-    def predict_on_tiles(self, ds_test, nb_batches=None):
+    def predict_on_tiles(self, ds_test, plot_fn=save_predicted_images,
+                         nb_batches=None):
         """Predict on tiles in the test set
 
         :param BaseDataSet/DataSetWithMask ds_test: generator used for
          batching test images
+        :param function plot_fn: function to be used for plotting inference
+         results and saving them
         :param int nb_batches: number of batches for predict and save
         """
 
@@ -101,8 +104,7 @@ class ModelEvaluator:
             else:
                 cur_input, cur_target = ds_test.__getitem__(batch_idx)
             pred_batch = self.model.predict(cur_input)
-            save_predicted_images(cur_input, cur_target, pred_batch,
-                                  output_dir, batch_idx)
+            plot_fn(cur_input, cur_target, pred_batch, output_dir, batch_idx)
 
     @staticmethod
     def _read_one(tp_dir, channel_ids, fname, flat_field_dir=None):
