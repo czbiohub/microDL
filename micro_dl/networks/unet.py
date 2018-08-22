@@ -115,7 +115,7 @@ class BaseUNet(metaclass=ABCMeta):
                                     padding='same',
                                     kernel_initializer='he_normal',
                                     data_format=self.data_format)(input_layer)
-        elif num_input_layers < num_final_layers:
+        if num_input_layers < num_final_layers:
             # padding with zeros along channels
             input_layer = Lambda(
                 self._pad_channels,
