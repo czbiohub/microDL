@@ -1,13 +1,14 @@
 """Dataset class for psf-net"""
 import keras
 import numpy as np
+from micro_dl.utils.normalize import zscore
 
 
 class DataSetForPSF(keras.utils.Sequence):
     """Dataset class for generating input and target pairs"""
 
     def __init__(self, input_fnames, num_focal_planes, batch_size,
-                 shuffle=True, random_seed=42):
+                 shuffle=True, random_seed=42, normalize=False):
         """Init
 
         :param np.array input_fnames: vector containing fnames with full path
@@ -24,6 +25,7 @@ class DataSetForPSF(keras.utils.Sequence):
         self.random_seed = random_seed
         self.num_samples = len(input_fnames)
         self.on_epoch_end()
+        self.normalize = normalize
 
     def __len__(self):
         """Gets the number of batches per epoch"""
@@ -58,6 +60,9 @@ class DataSetForPSF(keras.utils.Sequence):
             cur_input = np.expand_dims(cur_input, axis=0)
             cur_target = np.expand_dims(cur_image[:, :, -1], axis=0)
             cur_target = np.expand_dims(cur_target, axis=3)
+            if self.normalize:
+                cur_input = zscore(cur_input)
+                cur_target = zscore(cur_target)
             input_batch.append(cur_input)
             target_batch.append(cur_target)
         input_batch = np.stack(input_batch)

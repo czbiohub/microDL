@@ -6,6 +6,7 @@ from keras.layers import (Activation, AveragePooling2D, BatchNormalization,
                           Conv2D, Dense, Dropout, Flatten, Input, Lambda,
                           MaxPool2D)
 from keras.layers.merge import Add, Concatenate
+import keras.regularizers as k_regularizers
 
 
 class RegressionNet2D:
@@ -204,9 +205,8 @@ class RegressionNet2D:
             with tf.name_scope(block_name):
                 layer = Dense(dense_units[dense_idx],
                               kernel_initializer='he_normal',
+                              kernel_regularizer=k_regularizers.l2(0.001),
                               activation='relu')(prev_dense_layer)
-                if self.dropout_prob:
-                    layer = Dropout(self.dropout_prob)(layer)
             prev_dense_layer = layer
         # --------------------- output block -------------------------
         with tf.name_scope('output'):

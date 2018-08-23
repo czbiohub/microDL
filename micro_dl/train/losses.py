@@ -5,6 +5,12 @@ import tensorflow as tf
 import micro_dl.train.metrics as metrics
 
 
+def mse_loss(y_true, y_pred):
+
+    loss = K.mean(K.square(y_pred - y_true), axis=1)
+    return loss
+
+
 def mse_binary_wtd(n_channels):
     """Converts a loss function into weighted loss function
 
