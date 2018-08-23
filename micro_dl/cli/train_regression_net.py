@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import glob
+import natsort
 import numpy as np
 import os
 import pickle
@@ -9,7 +10,7 @@ import yaml
 from micro_dl.train.trainer import BaseKerasTrainer
 from micro_dl.utils.train_utils import check_gpu_availability, \
     split_train_val_test
-from micro_dl.input.dataset_psf import DataSetForPSF
+from micro_dl.input.dataset_regression import RegressionDataSet
 
 
 def parse_args():
@@ -39,8 +40,8 @@ def train(config_fname, gpu_id, gpu_mem_frac):
         config = yaml.load(f)
 
     try:
-        input_dir = config['dataset']['data_dir']
-        fnames = sorted(glob.glob(os.path.join(input_dir, '*.npy')))
+        input_dir = os.path.join(config['dataset']['data_dir'], 'TrainingData')
+        fnames = natsort.natsorted(glob.glob(os.path.join(input_dir, '*.npy')))
         #  save fnames as a csv to read train, val, test split later
         assert len(fnames) > 0, 'input_dir does not contain any files'
     except IOError as e:
@@ -67,16 +68,27 @@ def train(config_fname, gpu_id, gpu_mem_frac):
 
     #  save fnames for later use, esp for evaluating performance on test
     split_fname = os.path.join(config['trainer']['model_dir'],
-                                   'split_fnames.pkl')
+                                      'split_idx.pkl')
 
     with open(split_fname, 'wb') as f:
-        pickle.dump(split_fnames, f)
+        pickle.dump(split_indices, f)
+
+    # read the regression coeff
+    regress_values = np.load(os.path.join(config['dataset']['data_dir'],
+                                          'zernikecoeff.npy'))
 
     #  create dataset/generator for train/test set
     num_focal_planes = config['network']['num_focal_planes']
     batch_size = config['trainer']['batch_size']
-    train_dataset = DataSetForPSF(train_fnames, num_focal_planes, batch_size)
-    val_dataset = DataSetForPSF(val_fnames, num_focal_planes, batch_size)
+    train_dataset = RegressionDataSet(
+        input_fnames=train_fnames, num_focal_planes=num_focal_planes,
+        regression_coeff=regress_values[split_indices['train']],
+        batch_size=batch_size
+    )
+    val_dataset = RegressionDataSet(
+        input_fnames=val_fnames, num_focal_planes=num_focal_planes,
+        regression_coeff=regress_values[split_indices['val']],
+        batch_size=batch_size)
 
     #  start training
     trainer = BaseKerasTrainer(config=config,

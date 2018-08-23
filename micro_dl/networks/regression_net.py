@@ -11,7 +11,7 @@ from keras.layers.merge import Add, Concatenate
 class RegressionNet2D:
     """Network for regressing scalar values from a set of images"""
 
-    def __init__(self, network_config):
+    def __init__(self, config):
         """Init
 
         :param dict network_config:
@@ -19,22 +19,22 @@ class RegressionNet2D:
 
         # [height, width, num_initial_filters/num_filters_per_block,
         # pooling_type, num_input_channels, data_format, regression_length]
-        self.config = network_config
-        assert network_config['height'] == network_config['width'], \
+        self.config = config
+        assert config['network']['height'] == config['network']['width'], \
             'The network expects a square image'
 
-        num_conv_blocks = int(np.log2(network_config['height']) -
+        num_conv_blocks = int(np.log2(config['network']['height']) -
                               np.log2(2) + 1)
         self.num_conv_blocks = num_conv_blocks
 
-        if 'num_initial_filters' in network_config:
-            assert 'num_filters_per_block' not in network_config, \
+        if 'num_initial_filters' in config['network']:
+            assert 'num_filters_per_block' not in config['network'], \
                 'Both num_initial_filters & num_filters_per_block provided'
-            num_init_filters = network_config['num_initial_filters']
+            num_init_filters = config['network']['num_initial_filters']
             num_filters_per_block = [int(num_init_filters * 2 ** block_idx)
                                      for block_idx in range(num_conv_blocks)]
-        elif 'num_filters_per_block' in network_config:
-            num_filters_per_block = network_config['num_filters_per_block']
+        elif 'num_filters_per_block' in config['network']:
+            num_filters_per_block = config['network']['num_filters_per_block']
             assert len(num_filters_per_block) == num_conv_blocks, \
                 '{} conv blocks != len(num_filters_per_block)'.\
                     format(num_conv_blocks)
@@ -43,20 +43,20 @@ class RegressionNet2D:
                              'num_filters_per_block not in network_config')
         self.num_filters_per_block = num_filters_per_block
 
-        pool_type = network_config['pooling_type']
+        pool_type = config['network']['pooling_type']
         assert pool_type in ['max', 'average'], 'only max and average allowed'
         if pool_type == 'max':
             self.Pooling = MaxPool2D
         elif pool_type == 'average':
             self.Pooling = AveragePooling2D
 
-        self.data_format = network_config['data_format']
-        if network_config['data_format'] == 'channels_first':
+        self.data_format = config['network']['data_format']
+        if config['network']['data_format'] == 'channels_first':
             self.channel_axis = 1
         else:
             self.channel_axis = -1
 
-        dropout_prob = network_config['dropout']
+        dropout_prob = config['network']['dropout']
         assert 0.0 < dropout_prob < 0.7, 'invalid dropout probability'
         self.dropout_prob = dropout_prob
 
@@ -150,9 +150,9 @@ class RegressionNet2D:
         """Return shape of input"""
 
         shape = (
-            self.config['num_input_channels'],
-            self.config['height'],
-            self.config['width']
+            self.config['network']['num_input_channels'],
+            self.config['network']['height'],
+            self.config['network']['width']
         )
         return shape
 
@@ -168,11 +168,13 @@ class RegressionNet2D:
             with tf.name_scope(block_name):
                 layer = self._conv_block(
                     layer=input_layer,
-                    num_convs_per_block=self.config['num_convs_per_block'],
-                    filter_size=self.config['filter_size'],
+                    num_convs_per_block=self.config['network']['num_convs_per_block'],
+                    filter_size=self.config['network']['filter_size'],
                     num_filters=self.num_filters_per_block[block_idx],
-                    init='he_normal', activation_type='relu',
-                    batch_norm=True, dropout_prob=0.0, residual=True)
+                    init='he_normal',
+                    activation_type=self.config['network']['activation'],
+                    batch_norm=self.config['network']['batch_norm'],
+                    dropout_prob=self.dropout_prob, residual=True)
 
             with tf.name_scope('pool_{}'.format(block_idx+1)):
                 layer = self.Pooling(pool_size=2,
@@ -181,7 +183,7 @@ class RegressionNet2D:
 
         # --------------------- Dense blocks -------------------------
         num_units = self.num_filters_per_block[-1]
-        regression_length = self.config['regression_length']
+        regression_length = self.config['network']['regression_length']
 
         if num_units / 16 > regression_length:
             dense_units = np.array([num_units / 2, num_units / 4,
@@ -203,6 +205,8 @@ class RegressionNet2D:
                 layer = Dense(dense_units[dense_idx],
                               kernel_initializer='he_normal',
                               activation='relu')(prev_dense_layer)
+                if self.dropout_prob:
+                    layer = Dropout(self.dropout_prob)(layer)
             prev_dense_layer = layer
         # --------------------- output block -------------------------
         with tf.name_scope('output'):

@@ -153,7 +153,7 @@ class BaseKerasTrainer:
         """
 
         network_cls = self.config['network']['class']
-        network_cls = import_class('networks.unet', network_cls)
+        network_cls = import_class('networks', network_cls)
         network = network_cls(self.config)
         # assert if network shape matches dataset shape?
         inputs, outputs = network.build_net()
