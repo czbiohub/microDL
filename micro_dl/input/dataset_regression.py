@@ -1,5 +1,4 @@
 """Dataset class for psf-net"""
-import keras
 import numpy as np
 from micro_dl.input.dataset_psf import DataSetForPSF
 
@@ -7,8 +6,8 @@ from micro_dl.input.dataset_psf import DataSetForPSF
 class RegressionDataSet(DataSetForPSF):
     """Dataset class for generating input image and regression vector pairs"""
 
-    def __init__(self, input_fnames, num_focal_planes, regression_coeff,
-                 batch_size, shuffle=True, random_seed=42):
+    def __init__(self, input_fnames, num_focal_planes, # regression_coeff,
+                 batch_size, shuffle=True, random_seed=42, normalize=True):
         """Init
 
         :param np.array input_fnames: vector containing fnames with full path
@@ -24,7 +23,8 @@ class RegressionDataSet(DataSetForPSF):
                          num_focal_planes=num_focal_planes,
                          batch_size=batch_size, shuffle=shuffle,
                          random_seed=random_seed)
-        self.regression_coeff = regression_coeff
+        self.normalize = normalize
+        # self.regression_coeff = regression_coeff
 
     def __getitem__(self, index):
         """Get a batch of data
@@ -42,10 +42,23 @@ class RegressionDataSet(DataSetForPSF):
         for idx in range(start_idx, end_idx, 1):
             cur_fname = self.input_fnames[self.row_idx[idx]]
             cur_input = np.load(cur_fname)
-            cur_input = np.moveaxis(cur_input, -1, 0)
-            cur_target = self.regression_coeff[self.row_idx[idx], :]
-            input_batch.append(cur_input)
+            # modified to work with the latest dataset with 21 zer terms
+            input_stack = cur_input['images']
+            blurred_stack = input_stack[:-1]
+            if self.normalize:
+                blurred_stack = blurred_stack - np.min(blurred_stack)
+                blurred_stack = blurred_stack / np.max(blurred_stack)
+                input_stack[:-1] = blurred_stack
+            # input_stack = np.stack([center_image, unblurred_image])
+            # blurred_stack = np.moveaxis(blurred_stack, -1, 0)
+            # cur_target = self.regression_coeff[self.row_idx[idx], :]
+            cur_target = cur_input['zernike'][1][3:] 
+            # cur min and max z in dataset is -3.25 and 3.75
+            cur_target = cur_target + 3.25
+            cur_target = cur_target / 7.0
+            input_batch.append(input_stack)
             target_batch.append(cur_target)
         input_batch = np.stack(input_batch)
         target_batch = np.stack(target_batch)
+        target_batch = target_batch.astype('float32')
         return input_batch, target_batch

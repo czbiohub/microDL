@@ -8,17 +8,16 @@ dataset:
     width: 256
 verbose: 10
 trainer:
-    model_dir: '/models/psf_test'
-    batch_size: 16
-    max_epochs: 200
-    patience: 20
+    model_dir: '/models/keras_stack_input_normz'
+    batch_size: 64
+    max_epochs: 1000
     metrics: coeff_determination
     loss: mean_squared_error
     callbacks:
         EarlyStopping:
             mode: min
             monitor: val_loss
-            patience: 10
+            patience: 1000
             verbose: True
         ModelCheckpoint:
             mode: min
@@ -29,20 +28,20 @@ trainer:
             histogram_freq: 0
             verbose: True
     optimizer:
-        lr: 0.0001
+        lr: 0.0008
         name: Adam
 network:
     class: RegressionNet2D
     num_initial_filters: 16
     num_convs_per_block: 2
+    num_focal_planes: 3
     filter_size: 3
     batch_norm: True
     activation: relu
-    pooling_type: max
+    pooling_type: average
     dropout: 0.2
     height: 256
     width: 256
-    num_focal_planes: 3
     num_input_channels: 4
     data_format: 'channels_first'
-    regression_length: 32
+    regression_length: 18
