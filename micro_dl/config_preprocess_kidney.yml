@@ -1,0 +1,18 @@
+base_output_dir: '/data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1'
+focal_plane_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38]
+verbose: 10
+split_volumes: False
+splitter_class: LifStackSplitter2D
+input_fname: '/home/krishnan/mntDir/DeviceData/CZLASX-01/Data/2017/VirtualStaining/20171121_ManuShalin/ZStack1_BF_Clath_Mito_Nuclei.lif'
+correct_flat_field: False
+flat_field_class: FlatFieldEstimator2D
+use_masks: False
+masks:
+    mask_channels: [4,5]
+    str_elem_radius: 3
+tile_stack: True
+tile:
+    channels: -1
+    tile_size: [256, 256]
+    step_size: [64, 64]
+    save_cropped_masks: True    

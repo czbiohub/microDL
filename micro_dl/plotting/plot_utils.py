@@ -1,12 +1,14 @@
 """Utility functions for plotting"""
 import cv2
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 
 def save_predicted_images(input_batch, target_batch, pred_batch,
-                          output_dir, batch_idx=None, output_fname=None):
+                          output_dir, batch_idx=None, output_fname=None, tol=1, fontsize=15):
     """Saves a batch predicted image to output dir
 
     Format: rows of [input, target, pred]
@@ -41,27 +43,30 @@ def save_predicted_images(input_batch, target_batch, pred_batch,
         fig.set_size_inches((15, 5 * n_channels))
         axis_count = 0
         for channel_idx in range(n_channels):
-            ax[axis_count].imshow(cur_input[channel_idx], cmap='gray')
+            ax[axis_count].imshow(imClip(cur_input[channel_idx],
+              tol=tol), cmap='gray')
             ax[axis_count].axis('off')
             if axis_count == 0:
-                ax[axis_count].set_title('input')
+                ax[axis_count].set_title('Input', fontsize = fontsize)
             axis_count += 1
-            ax[axis_count].imshow(cur_target[channel_idx], cmap='gray')
+            ax[axis_count].imshow(imClip(cur_target[channel_idx],
+              tol=tol), cmap='gray')
             ax[axis_count].axis('off')
             if axis_count == 1:
-                ax[axis_count].set_title('target')
+                ax[axis_count].set_title('Target', fontsize = fontsize)
             axis_count += 1
-            ax[axis_count].imshow(cur_prediction[channel_idx], cmap='gray')
+            ax[axis_count].imshow(imClip(cur_prediction[channel_idx],
+              tol=tol), cmap='gray')
             ax[axis_count].axis('off')
             if axis_count == 2:
-                ax[axis_count].set_title('prediction')
+                ax[axis_count].set_title('Prediction', fontsize = fontsize)
             axis_count += 1
         if batch_size != 1:
             fname = os.path.join(
                 output_dir,
                 '{}.jpg'.format(str(batch_idx * batch_size + img_idx))
             )
-        fig.savefig(fname, dpi=250)
+        fig.savefig(fname, dpi=300, bbox_inches='tight')
         plt.close(fig)
 
 
@@ -95,3 +100,18 @@ def save_mask_overlay(input_image, mask, op_fname, alpha=0.7):
     ax[2].axis('off')
     fig.savefig(op_fname, dpi=250)
     plt.close(fig)
+
+def imClip(img, tol=1, bit=16):
+    """
+    Clip the images for better visualization
+    """
+    limit = np.percentile(img, [tol, 100-tol])
+    imgClpped = np.clip(img, limit[0], limit[1])
+    return imgClpped
+
+def exportImg(imgNames, imgs, outDir):        
+    for imgName, img in zip(imgNames, imgs):        
+        if len(img.shape)<3:
+            cv2.imwrite(os.path.join(outDir, imgName), img)
+        else:
+            cv2.imwrite(os.path.join(outDir, imgName), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))       

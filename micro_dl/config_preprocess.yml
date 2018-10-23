@@ -1,9 +1,9 @@
-base_output_dir: '/data/anitha/debug_lif'
+base_output_dir: '/data/sguo/lif_split_npy/'
 focal_plane_idx: 0
 verbose: 10
 split_volumes: True
 splitter_class: LifStackSplitter2D
-input_fname: '/home/krishnan/mntDir/DeviceData/CZLASX-01/Data/2017/VirtualStaining/20171121_ManuShalin/ZStack1_BF_Clath_Mito_Nuclei.lif'
+input_fname: '/home/sguo/LabData/DeviceData/CZLASX-01/Data/2018/LabelFree/04052018_LabelFree/20x20zstack_U2OS_DAPI_MitoTrackerRed_BF_Phase.lif'
 correct_flat_field: True
 flat_field_class: FlatFieldEstimator2D
 use_masks: True

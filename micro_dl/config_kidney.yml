@@ -1,0 +1,55 @@
+dataset:
+    preprocess: False
+    data_dir: '/data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/image_tile_256-256_step_64-64'
+    input_channels: [0]
+    target_channels: [3]
+    split_by_column: sample_num
+    split_ratio:
+        train: 0.7
+        val: 0.15
+        test: 0.15
+    height: 256
+    width: 256
+verbose: 10
+trainer:
+    model_dir: '/models_labelfree/tile256_step64_fltr16_256_lr2e-5_do20_mse_chan0_3_global_zscore_no_batchnorm'
+    batch_size: 32
+    max_epochs: 500
+    patience: 30
+    metrics: coeff_determination
+    loss: mean_squared_error
+    callbacks:
+        EarlyStopping:
+            mode: min
+            monitor: val_loss
+            patience: 30
+            verbose: True
+        ModelCheckpoint:
+            mode: min
+            monitor: val_loss
+            save_best_only: True
+            verbose: True
+        TensorBoard:
+            histogram_freq: 0
+            verbose: True
+    optimizer:
+        lr: 0.00002
+        name: Adam
+network:
+    class: UNet2D
+    num_filters_per_block: [16, 32, 64, 128, 256]
+    num_convs_per_block: 2
+    filter_size: 3
+    batch_norm: False
+    activation: relu
+    pooling_type: average
+    skip_merge_type: concat
+    upsampling: bilinear
+    dropout: 0.2
+    residual: True
+    height: 256
+    width: 256
+    num_input_channels: 1
+    num_target_channels: 1
+    data_format: 'channels_first'
+    final_activation: linear

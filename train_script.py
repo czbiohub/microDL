@@ -175,6 +175,9 @@ def run_action(args):
         df_meta_fname = os.path.join(config['dataset']['data_dir'],
                                      'tiled_images_info.csv')
         df_meta = pd.read_csv(df_meta_fname)
+        
+        if not os.path.exists(config['trainer']['model_dir']): 
+            os.makedirs(config['trainer']['model_dir'])
 
         if 'weighted_loss' in config['trainer']:
             train_dataset, val_dataset, test_dataset, split_indices = \

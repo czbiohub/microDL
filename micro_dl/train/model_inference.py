@@ -6,29 +6,66 @@ import os
 import micro_dl.utils.aux_utils as aux_utils
 import micro_dl.utils.image_utils as image_utils
 from micro_dl.utils.normalize import zscore
-from micro_dl.plotting.plot_utils import save_predicted_images
+from micro_dl.plotting.plot_utils import save_predicted_images, exportImg
 import micro_dl.utils.train_utils as train_utils
 
 
-def load_model(config, model_fname):
+def load_model(config, model_fname, predict=False):
     """Load the model from model_dir
-
     Due to the lambda layer only model weights are saved and not the model
     config. Hence load_model wouldn't work here!
-    :param yaml config: a yaml file with all the required parameters
+    :param yaml network_config: a yaml file with all the required parameters
     :param str model_fname: fname with full path of the .hdf5 file with saved
      weights
+    :param bool predict: load model for predicting / training. predict skips
+     checks on input shape
     :return: Keras.Model instance
     """
-
-    network_cls = config['network']['class']
+    network_config = config['network']
+    network_cls = network_config['class']
     # not ideal as more networks get added
     network_cls = aux_utils.import_class('networks', network_cls)
-    network = network_cls(config)
+    network = network_cls(config, predict)
     inputs, outputs = network.build_net()
     model = Model(inputs=inputs, outputs=outputs)
     model.load_weights(model_fname)
     return model
+
+def predict_on_larger_image(config, model_fname, input_image):
+    """Predict on an image larger than the one it was trained on
+    :param dict network_config: a dict with all the required parameters
+    :param str model_fname: fname with full path of the .hdf5 file with saved
+     weights
+    :param np.array input_image: as named
+    :return np.array predicted image: as named
+    """
+    config['network']['width'] = None
+    config['network']['height'] = None
+    if 'depth' in config['network']:
+        config['network']['depth'] = None
+    model = load_model(config, model_fname, predict=True)
+    
+#    input_image = zscore(input_image)
+    im_size = input_image.shape
+    num_dims = len(im_size)
+    if num_dims == 3:        
+        if config['network']['data_format'] == 'channels_first':
+            im_shape = [1, im_size[0], im_size[1], im_size[2]]
+        else:
+            im_shape = [1, im_size[1], im_size[2], im_size[0]]
+
+    elif num_dims == 4:
+        if config['network']['data_format'] == 'channels_first':
+            im_shape = [1, im_size[0], im_size[1], im_size[2], im_size[3]]
+        else:
+            im_shape = [1, im_size[1], im_size[2], im_size[3], im_size[0]]
+    else:
+        raise ValueError('Invalid image shape: only 2D and 3D images')
+
+    predicted_image = model.predict(np.reshape(input_image, im_shape))
+    predicted_image = np.stack([np.squeeze(predicted_image)]) # remove batch dimemsion
+    return predicted_image
+
 
 
 class ModelEvaluator:
@@ -52,6 +89,7 @@ class ModelEvaluator:
         assert np.logical_xor(model is not None,
                               model_fname is not None), msg
         self.config = config
+        self.model_fname = model_fname
         if gpu_ids >= 0:
             self.sess = train_utils.set_keras_session(
                 gpu_ids=gpu_ids, gpu_mem_frac=gpu_mem_frac
@@ -122,7 +160,7 @@ class ModelEvaluator:
             cur_fname = os.path.join(tp_dir,
                                      'channel_{}'.format(ch),
                                      fname)
-            cur_image = np.load(cur_fname)
+            cur_image = np.load(cur_fname).astype(np.float32)
             if flat_field_dir is not None:
                 ff_fname = os.path.join(flat_field_dir,
                                         'flat-field_channel-{}.npy'.format(ch))
@@ -130,6 +168,14 @@ class ModelEvaluator:
                 cur_image = image_utils.apply_flat_field_correction(
                     cur_image, flat_field_image=ff_image)
             cur_image = zscore(cur_image)
+          ## minimally crop the image from center to have cropped shape always power of 2
+            image_shape = np.asarray(cur_image.shape)
+            crop_shape = 2**(np.floor(np.log2(image_shape))-1)
+            crop_shape = crop_shape.astype(np.int)            
+            ctr = np.floor(image_shape/2).astype(np.int)
+            cur_image =  cur_image[ctr[0]-crop_shape[0]:ctr[0]+crop_shape[0],
+                                   ctr[1]-crop_shape[1]:ctr[1]+crop_shape[1]]
+            
             cur_images.append(cur_image)
         cur_images = np.stack(cur_images)
         return cur_images
@@ -161,8 +207,7 @@ class ModelEvaluator:
         :param list crop_indices: list of tuples with crop indices
         :param int batch_size: number of tiles to batch
         :return: list of np.array with shape (batch_size, ip_image.shape)
-        """
-
+        """        
         tile_dim = int(len(crop_indices[0]) / 2)
         num_batches = np.ceil(len(crop_indices) / batch_size).astype('int')
         pred_tiles = []
@@ -177,10 +222,16 @@ class ModelEvaluator:
                                                          cur_index)
                 cropped_image = ip_image[cur_index_slice]
                 ip_batch_list.append(cropped_image)
-
+                
             ip_batch = np.stack(ip_batch_list)
             pred_batch = self.model.predict(ip_batch)
             pred_tiles.append(pred_batch)
+        
+#        ip_image = ip_image.reshape(1, ip_image.shape[0], ip_image.shape[1], ip_image.shape[2])
+#        print(ip_image.shape)
+#        self.model._internal_input_shapes = None
+#        self.model._internal_output_shapes=None 
+#        pred_image = self.model.predict(ip_image)
         return pred_tiles
 
     def _place_patch(self, full_image, tile_image, input_image_dim, full_idx,
@@ -374,19 +425,28 @@ class ModelEvaluator:
                                               ff_dir)
                 input_image = self._read_one(tp_dir, ip_channel_ids, fname,
                                              ff_dir)
-                pred_tiles = self._pred_image(input_image,
-                                              crop_indices,
-                                              batch_size)
-                pred_image = self._stich_image(pred_tiles, crop_indices,
-                                               input_image.shape, batch_size,
-                                               tile_size, overlap_size)
-                pred_fname = '{}.npy'.format(fname.split('.')[0])
+#                pred_tiles = self._pred_image(input_image,
+#                                              crop_indices,
+#                                              batch_size)
+
+                pred_image = predict_on_larger_image(self.config, self.model_fname, input_image)
+#                pred_image = self._stich_image(pred_tiles, crop_indices,
+#                                               input_image.shape, batch_size,
+#                                               tile_size, overlap_size)
+                input_fname = 'input_{}.tif'.format(fname.split('.')[0])
+                target_fname = 'target_{}.tif'.format(fname.split('.')[0])
+                pred_fname = 'pred_{}.tif'.format(fname.split('.')[0])
+                
+                
                 for idx, op_ch in enumerate(op_channel_ids):
                     op_dir = os.path.join(pred_dir, 'channel_{}'.format(op_ch))
                     if not os.path.exists(op_dir):
                         os.makedirs(op_dir)
-                    np.save(os.path.join(op_dir, pred_fname), pred_image[idx])
+#                    np.save(os.path.join(op_dir, pred_fname), pred_image[idx])
+                    exportImg([input_fname, target_fname, pred_fname], 
+                                   [input_image[idx], target_image[idx], pred_image[idx]], op_dir)    
+                    
                     save_predicted_images(
                         [input_image], [target_image],
                         [pred_image], os.path.join(op_dir, 'collage'),
-                        output_fname=fname.split('.')[0])
+                        output_fname=fname.split('.')[0], tol=2, fontsize=20)

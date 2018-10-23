@@ -43,7 +43,7 @@ def get_row_idx(study_metadata, timepoint_idx,
     if focal_plane_idx is not None:
         row_idx = ((study_metadata['timepoint'] == timepoint_idx) &
                    (study_metadata['channel_num'] == channel_idx) &
-                   (study_metadata['slice_num'] == focal_plane_idx))
+                   (study_metadata['slice_num'].isin(focal_plane_idx)))
     else:
         row_idx = ((study_metadata['timepoint'] == timepoint_idx) &
                    (study_metadata['channel_num'] == channel_idx))

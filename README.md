@@ -20,7 +20,7 @@ docker build -t imaging_docker:gpu_py36_cu90 -f Dockerfile.imaging_docker_py36_c
 ```
 Now you want to start a Docker container from your image, which is the virtual environment you will run your code in.
 ```buildoutcfg
-nvidia-docker run -it -p <your port>:<exposed port> -v <your dir>:/<dirname inside docker> imaging_docker:gpu_py36_cu90 bash
+sudo nvidia-docker run -it  -v /data/sguo/:/data/sguo/ -v /data/sguo/models_labelfree:/models_labelfree -v ~/microDL:/microDL imaging_docker:gpu_py36_cu90 bash
 ```
 If you look in the Dockerfile, you can see that there are two ports exposed, one is typically used for Jupyter (8888)
 and one for Tensorboard (6006). To be able to view these in your browser, you need map the port with the -p argument.
@@ -88,12 +88,19 @@ python micro_dl/cli/run_image_preprocessing.py -i <dir_name> -o <output_dir>
 To train the model using your preprocessed data, you can modify the followind config file and run:
 
 ```buildoutcfg
-python micro_dl/train/train_script.py --config micro_dl/config.yml
+ipython --pdb train_script.py -- --config micro_dl/config_kidney.yml --gpu_mem_frac=0.99 --gpu=1 --action=train
+```
+
+```buildoutcfg
+export CUDA_VISIBLE_DEVICES="1"
+tensorboard --logdir=/data/sguo/models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_mse_chan0_3_global_zscore_no_batchnorm --port 5997
 ```
 
 for model inference run:
 ```buildoutcfg
+ipython --pdb inference_script.py -- --gpu 0 --gpu_mem_frac 0.65 --config /models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_mse_chan0_3_global_zscore_no_batchnorm/config.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
 
+ipython --pdb inference_script.py -- --gpu 3 --gpu_mem_frac 0.99 --config micro_dl/config_kidney.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
 ```
 
 ## Requirements

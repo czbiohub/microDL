@@ -89,7 +89,7 @@ class ImageStackTiler:
 
         for id_img_tuple in cropped_image_info:
             rcsl_idx = id_img_tuple[0]
-            img_fname = 'n{}_{}'.format(meta_row['sample_num'], rcsl_idx)
+            img_fname = 'n{}_{}_z{}'.format(meta_row['sample_num'], rcsl_idx, meta_row['slice_num'])
             cropped_img = id_img_tuple[1]
             cropped_img_fname = os.path.join(
                 channel_dir, '{}.npy'.format(img_fname)
@@ -116,8 +116,10 @@ class ImageStackTiler:
         of the format rrmin-rmax_ccmin-cmax_slslmin-slmax, cropped image)
         :param dict of lists crop_indices: dict with key as fname and values
          are list of crop indices
-        """
-
+        """        
+        global_mean = channel_metadata['mean'].mean()
+        # approximate global std by mean of the local stds
+        global_std = channel_metadata['std'].mean()
         for _, row in channel_metadata.iterrows():
             sample_fname = row['fname']
             # Read npy or image
@@ -135,7 +137,8 @@ class ImageStackTiler:
                 cur_image = hist_clipping(cur_image,
                                           hist_clip_limits[0],
                                           hist_clip_limits[1])
-            cur_image = zscore(cur_image)
+            cur_image = zscore(cur_image, mean = global_mean, 
+                               std = global_std)
             if tile_function == image_utils.tile_image:
                 cropped_image_data = tile_function(
                     input_image=cur_image, tile_size=self.tile_size,

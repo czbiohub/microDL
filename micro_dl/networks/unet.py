@@ -21,25 +21,29 @@ class BaseUNet(metaclass=ABCMeta):
     last block to match the input image size.
     """
 
-    def __init__(self, config):
+    def __init__(self, config,predict=False):
         """Init
 
         :param yaml config: yaml with all network associated parameters
         """
-
         num_down_blocks = len(config['network']['num_filters_per_block']) - 1
-        # assuming height=width
-        width = config['network']['width']
-        feature_width_at_last_block = width / (2 ** (num_down_blocks))
-        msg = 'network depth is incompatible with the input size'
-        assert feature_width_at_last_block >= 2, msg
+        network_config = config['network']
+        upsampling = config['network']['upsampling']
+        if not predict:            
+            width = network_config['width']            
+            feature_width_at_last_block = width / (2 ** num_down_blocks)
+            msg_depth_check = 'network depth is incompatible with input size'
+            msg_upsamp = 'invalid upsampling, not in repeat/bilinear/nearest_neighbor'
+            assert feature_width_at_last_block >= 2, msg_depth_check
+            assert upsampling in ['bilinear', 'nearest_neighbor', 'repeat'], \
+                msg_upsamp                               
 
         #  keras upsampling repeats the rows and columns in data. leads to
         #  checkerboard in upsampled images. repeat - use keras builtin
         #  nearest_neighbor, bilinear: interpolate using custom layers
-        upsampling = config['network']['upsampling']
-        msg = 'invalid upsampling, not in repeat/bilinear/nearest_neighbor'
-        assert upsampling in ['bilinear', 'nearest_neighbor', 'repeat'], msg
+        
+        
+        
         self.upsampling_type = upsampling
 
         self.config = config
@@ -79,6 +83,7 @@ class BaseUNet(metaclass=ABCMeta):
             config['network']['num_target_channels'] = (
                 len(config['dataset']['target_channels'])
             )
+        
 
     @staticmethod
     @abstractmethod
@@ -298,7 +303,6 @@ class BaseUNet(metaclass=ABCMeta):
                               padding='same', kernel_initializer='he_normal',
                               data_format=self.data_format)(input_layer)
             outputs = Activation(final_activation)(layer)
-
         return inputs, outputs
 
     def _set_skip_merge_type(self):

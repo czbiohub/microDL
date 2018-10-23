@@ -3,21 +3,26 @@ import numpy as np
 from skimage.exposure import rescale_intensity, equalize_adapthist
 
 
-def zscore(input_image):
-    """Performs z-score normalization
+def zscore(input_image, mean=None, std=None):
+    """Performs z-score normalization and set NaN to zero
 
     :param input_image: input image for intensity normalization
     :return: z score normalized image
     """
-
-    norm_img = (input_image - np.mean(input_image)) / np.std(input_image)
+    input_image_nonan = input_image
+    input_image_nonan[np.isnan(input_image)]=0 #set NaN to zero
+    if not mean:
+        mean = np.nanmean(input_image)
+    if not std:
+        std = np.nanstd(input_image)
+    norm_img = (input_image_nonan - mean)/np.maximum(np.nanstd(input_image),np.spacing(1.0))
     return norm_img
 
 
 def hist_clipping(input_image, min_percentile=2, max_percentile=98):
     """Clips and rescales histogram from min to max intensity percentiles
-
-    rescale_intensity with input check
+    
+    rescale_intensity with input check. rescale_intensity can give NaN. Disable for now
 
     :param np.array input_image: input image for intensity normalization
     :param int/float min_percentile: min intensity percentile
@@ -27,8 +32,17 @@ def hist_clipping(input_image, min_percentile=2, max_percentile=98):
 
     assert (min_percentile < max_percentile) and max_percentile <= 100
     pmin, pmax = np.percentile(input_image, (min_percentile, max_percentile))
-    hist_clipped_image = rescale_intensity(input_image, in_range=(pmin, pmax))
+    hist_clipped_image = np.clip(input_image, pmin, pmax)
+#    hist_clipped_image = rescale_intensity(input_image, in_range=(pmin, pmax))
     return hist_clipped_image
+
+def imClip(img, tol=1, bit=16,vin=[0,2**16-1]):
+    """
+    Clip the images for better visualization
+    """
+    limit = np.percentile(img, [tol, 100-tol])
+    imgClpped = np.clip(img, limit[0], limit[1])
+    return imgClpped
 
 
 def hist_adapteq_2D(input_image, kernel_size=None, clip_limit=None):
