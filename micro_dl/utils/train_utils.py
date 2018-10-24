@@ -41,14 +41,15 @@ def check_gpu_availability(gpu_id, gpu_mem_frac):
     return np.all(gpu_availability)
 
 
-def split_train_val_test(num_samples, train_ratio, test_ratio,
+
+def split_train_val_test(sample_set, train_ratio, test_ratio,
                           val_ratio=None):
     """Generate indices for train, validation and test split
 
     This can be achieved by using sklearn.model_selection.train_test_split
     twice... :-)
 
-    :param int num_samples: total number of samples/datasets
+    :param set sample_set: as named, not necessarily continuous values
     :param float train_ratio: between 0 and 1, percent of samples to be
      used for training
     :param float test_ratio: between 0 and 1, percent of samples to be
@@ -58,33 +59,28 @@ def split_train_val_test(num_samples, train_ratio, test_ratio,
     :return: dict split_idx with keys [train, val, test] and values as lists
     """
 
-    msg = 'train, val and test ratios do not add upto 1'
+    msg = 'train, val and test ratios do not add up to 1'
     assert train_ratio + val_ratio + test_ratio == 1, msg
+    num_samples = len(sample_set)
     num_test = int(test_ratio * num_samples)
     num_test = max(num_test, 1)
 
     split_idx = {}
-    test_idx = np.random.randint(0, num_samples, num_test)
-    test_idx = list(test_idx)
-    if num_test == 1:
-        test_idx = [test_idx[0]]
+    test_idx = np.random.choice(sample_set, num_test, replace=False)
     split_idx['test'] = test_idx
-    rem_set = set(range(0, num_samples)) - set(test_idx)
+    rem_set = set(sample_set) - set(test_idx)
+    rem_set = list(rem_set)
 
     if val_ratio:
         num_val = int(val_ratio * num_samples)
         num_val = max(num_val, 1)
-        idx = np.random.randint(0, len(rem_set), num_val).astype('int')
-        rem_set_as_list = list(rem_set)
-        val_idx = [rem_set_as_list[val] for val in idx] 
-        if num_val == 1:
-            rem_set.remove(val_idx[0])
-        else:
-            rem_set = rem_set - set(val_idx)
+        val_idx = np.random.choice(rem_set, num_val, replace=False)
         split_idx['val'] = val_idx
-    train_idx = list(rem_set)
-    split_idx['train'] = train_idx
+        rem_set = set(rem_set) - set(val_idx)
+        rem_set = list(rem_set)
 
+    train_idx = np.array(rem_set, dtype='int')
+    split_idx['train'] = train_idx
     return split_idx
 
 
