@@ -109,12 +109,27 @@ def run_inference(args):
 
 if __name__ == '__main__':
     args = parse_args()
-    gpu_available = False
-    assert isinstance(args.gpu, int)
-    if args.gpu >= 0:
-        gpu_available = check_gpu_availability(args.gpu, args.gpu_mem_frac)
+    # Currently only supporting one GPU as input
+    if not isinstance(args.gpu, int):
+        raise NotImplementedError
+    # If debug mode, run without checking GPUs
+    if args.gpu == -1:
+        model_perf = run_inference(args)
+    # Get currently available GPU memory fractions and determine if
+    # requested amount of memory is available
+    gpu_mem_frac = args.gpu_mem_frac
+    if isinstance(gpu_mem_frac, float):
+        gpu_mem_frac = [gpu_mem_frac]
+    gpu_available, curr_mem_frac = check_gpu_availability(
+        args.gpu,
+        gpu_mem_frac,
+    )
     if gpu_available:
         model_perf = run_inference(args)
         print('model performance on test images:', model_perf)
-
-
+    else:
+        raise ValueError(
+            "Not enough memory available. Requested/current fractions:",
+            "\n".join([str(c) + " / " + "{0:.4g}".format(m)
+                       for c, m in zip(gpu_mem_frac, curr_mem_frac)]),
+        )
