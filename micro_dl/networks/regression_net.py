@@ -241,6 +241,12 @@ class RegressionNet2D:
                                 padding='same',
                                 kernel_initializer='he_normal',
                                 data_format=self.data_format)(prev_dense_layer)
+            
+            if self.config['network']['batch_norm']:
+                last_layer = BatchNormalization(axis=self.channel_axis,
+                                                epsilon=1e-3)(last_layer)
+            last_layer = Activation('tanh')(last_layer)
+  
             outputs = Flatten()(last_layer)
             """
             outputs = Dense(regression_length,
