@@ -4,20 +4,21 @@ import argparse
 import os
 import yaml
 
-from micro_dl.input import gen_crop_masks, tile_stack
+import micro_dl.input.gen_crop_masks as gen_crop_masks
+import micro_dl.input.tile_stack as tile_stack
 from micro_dl.utils.aux_utils import import_class
 
 
 def parse_args():
     """Parse command line arguments
-
     In python namespaces are implemented as dictionaries
     :return: namespace containing the arguments passed.
     """
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--config', type=str, help='path to yaml configuration file'
+        '--config', type=str, default='micro_dl/config_preprocess_kidney.yml'
+        , help='path to yaml configuration file'
     )
     args = parser.parse_args()
     return args
@@ -25,9 +26,7 @@ def parse_args():
 
 def read_config(config_fname):
     """Read the config file in yml format
-
     TODO: validate config!
-
     :param str config_fname: fname of config yaml with its full path
     :return:
     """
@@ -40,7 +39,6 @@ def read_config(config_fname):
 
 def pre_process(pp_config):
     """Split and crop volumes from lif data
-
     :param dict pp_config: dict with keys [input_fname, base_output_dir,
      split_volumes, crop_volumes]
     """
@@ -80,12 +78,12 @@ def pre_process(pp_config):
     # generate masks
     if pp_config['use_masks']:
         if 'timepoints' in pp_config:
-            mask_processor_inst = MaskProcessor(
+            mask_processor_inst = gen_crop_masks.MaskProcessor(
                 split_dir, pp_config['masks']['mask_channels'],
                 pp_config['timepoints']
             )
         else:
-            mask_processor_inst = MaskProcessor(
+            mask_processor_inst = gen_crop_masks.MaskProcessor(
                 split_dir, pp_config['masks']['mask_channels']
             )
 
@@ -108,11 +106,13 @@ def pre_process(pp_config):
         else:
             isotropic = False
 
-        cropper_inst = ImageStackTiler(pp_config['base_output_dir'],
-                                       pp_config['tile']['tile_size'],
-                                       pp_config['tile']['step_size'],
-                                       correct_flat_field=correct_flat_field,
-                                       isotropic=isotropic)
+        cropper_inst = tile_stack.ImageStackTiler(
+            pp_config['base_output_dir'],
+            pp_config['tile']['tile_size'],
+            pp_config['tile']['step_size'],
+            correct_flat_field=correct_flat_field,
+            isotropic=isotropic,
+        )
         if 'hist_clip_limits' in pp_config['tile']:
             hist_clip_limits = pp_config['tile']['hist_clip_limits']
         else:
