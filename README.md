@@ -88,7 +88,7 @@ python micro_dl/cli/run_image_preprocessing.py -i <dir_name> -o <output_dir>
 To train the model using your preprocessed data, you can modify the followind config file and run:
 
 ```buildoutcfg
-ipython --pdb train_script.py -- --config micro_dl/config_kidney.yml --gpu_mem_frac=0.99 --gpu=1 --action=train
+ipython --pdb train_script.py -- --config /microDL/micro_dl/config_kidney.yml --gpu_mem_frac=0.95 --gpu=3 --action=train
 ```
 
 ```buildoutcfg
