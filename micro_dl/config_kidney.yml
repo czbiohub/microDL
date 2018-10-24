@@ -18,6 +18,7 @@ trainer:
     patience: 30
     metrics: coeff_determination
     loss: mean_squared_error
+    augmentations: True
     callbacks:
         EarlyStopping:
             mode: min

@@ -14,7 +14,6 @@ class BaseDataSet(keras.utils.Sequence):
     """
 
     def __init__(self,
-                 tile_dir,
                  input_fnames,
                  target_fnames,
                  batch_size,
@@ -41,7 +40,6 @@ class BaseDataSet(keras.utils.Sequence):
         :param int random_seed: initialize the random number generator with
          this seed
         """
-        self.tile_dir = tile_dir
         self.input_fnames = input_fnames
         self.target_fnames = target_fnames
         self.batch_size = batch_size
@@ -99,7 +97,7 @@ class BaseDataSet(keras.utils.Sequence):
 
         image_volume = []
         for fname in fname_list:
-            cur_channel = np.load(os.path.join(self.tile_dir, fname))
+            cur_channel = np.load(fname)
             if self.augmentations:
                 cur_channel = self._augment_image(cur_channel, aug_idx)
             image_volume.append(cur_channel)
@@ -164,7 +162,6 @@ class DataSetWithMask(BaseDataSet):
     """DataSet class that returns input, target images and sample weights"""
 
     def __init__(self,
-                 tile_dir,
                  input_fnames,
                  target_fnames,
                  mask_fnames,
@@ -195,8 +192,7 @@ class DataSetWithMask(BaseDataSet):
          this seed
         """
 
-        super().__init__(tile_dir,
-                         input_fnames,
+        super().__init__(input_fnames,
                          target_fnames,
                          batch_size,
                          model_task,
