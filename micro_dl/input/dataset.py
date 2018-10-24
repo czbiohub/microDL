@@ -43,10 +43,33 @@ class BaseDataSet(keras.utils.Sequence):
         n_batches = int(np.ceil(self.num_samples / self.batch_size))
         return n_batches
 
-    def _augment_image(self, input_image, target_image, mask_image=None):
-        """Augment images"""
+    def _augment_image(self, input_image, aug_idx):
+        """Adds image augmentation among 6 possible options
+        :param np.array input_image: input image to be transformed
+        :param int aug_idx: integer specifying the transformation to apply.
+         0 - Image as is, 1 - flip LR, 2 - flip UD, 3 - rot 90, 4 - rot 180,
+         5 - rot 270
+        :return np.array image after transformation is applied
+        """
 
-        return NotImplementedError
+        assert len(input_image.shape) == 2, 'current implementation works' \
+                                            'for 2D images only'
+        if aug_idx == 0:
+            return input_image
+        elif aug_idx == 1:
+            trans_image = np.fliplr(input_image)
+        elif aug_idx == 2:
+            trans_image = np.flipud(input_image)
+        elif aug_idx == 3:
+            trans_image = np.rot90(input_image, 1)
+        elif aug_idx == 4:
+            trans_image = np.rot90(input_image, 2)
+        elif aug_idx == 5:
+            trans_image = np.rot90(input_image, 3)
+        else:
+            msg = '{} not in allowed aug_idx: 0-5'.format(aug_idx)
+            raise ValueError(msg)
+        return trans_image
 
     def __getitem__(self, index):
         """Get a batch of data
@@ -75,8 +98,8 @@ class BaseDataSet(keras.utils.Sequence):
                 cur_target = cur_target.astype(np.float64)
             else:
                 # Only normalize target if we're dealing with regression
-                cur_target = (cur_target - np.mean(cur_target)) /\
-                             np.std(cur_target)
+                # cur_target = (cur_target - np.mean(cur_target)) /\
+                #              np.std(cur_target)
             # _augment_image(cur_input, cur_target)
             input_image.append(cur_input)
             target_image.append(cur_target)
