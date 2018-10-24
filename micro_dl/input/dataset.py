@@ -19,7 +19,7 @@ class BaseDataSet(keras.utils.Sequence):
                  batch_size,
                  model_task='regression',
                  shuffle=True,
-                 augmentations=False,
+                 augmentations=True,
                  random_seed=42,
                  normalize=False):
         """Init
