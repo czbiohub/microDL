@@ -1,7 +1,6 @@
 """Custom losses"""
 from keras import backend as K
 import tensorflow as tf
-
 import micro_dl.train.metrics as metrics
 
 
@@ -41,8 +40,8 @@ class DSSIM_Loss():
         y_true = K.reshape(y_true, [-1] + list(self.__int_shape(y_pred)[1:]))
         y_pred = K.reshape(y_pred, [-1] + list(self.__int_shape(y_pred)[1:]))
 
-        patches_pred = K.extract_image_patches(y_pred, kernel, kernel, 'valid', self.dim_ordering)
-        patches_true = K.extract_image_patches(y_true, kernel, kernel, 'valid', self.dim_ordering)
+        patches_pred = tf.extract_image_patches(y_pred, kernel, kernel, 'valid', self.dim_ordering)
+        patches_true = tf.extract_image_patches(y_true, kernel, kernel, 'valid', self.dim_ordering)
 
         # Reshape to get the var in the cells
         bs, w, h, c1, c2, c3 = self.__int_shape(patches_pred)
