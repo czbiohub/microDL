@@ -88,7 +88,7 @@ python micro_dl/cli/run_image_preprocessing.py -i <dir_name> -o <output_dir>
 To train the model using your preprocessed data, you can modify the followind config file and run:
 
 ```buildoutcfg
-ipython --pdb /microDL/micro_dl/cli/train_script.py -- --config /microDL/micro_dl/config_kidney.yml --gpu_mem_frac=0.95 --gpu=0 --action=train
+ipython --pdb /microDL/micro_dl/cli/train_script.py -- --config /microDL/micro_dl/config_kidney.yml --gpu_mem_frac=0.95 --gpu=3 --action=train
 ```
 
 ```buildoutcfg
@@ -98,9 +98,9 @@ tensorboard --logdir=/data/sguo/models_labelfree/tile256_step64_fltr8_128_lr1e-4
 
 for model inference run:
 ```buildoutcfg
-ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 0 --gpu_mem_frac 0.65 --config /models_labelfree/tile256_step64_fltr16_256_lr1e-4_do0_mse_chan5_5_global_norm_no_batchnorm_augmented/config.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
+ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 3 --gpu_mem_frac 0.65 --config /models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_mse_chan1_5_global_norm_no_batchnorm_augmented/config.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
 
-ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 0 --gpu_mem_frac 0.60 --config /microDL/micro_dl/config_kidney.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
+ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 3 --gpu_mem_frac 0.60 --config /microDL/micro_dl/config_kidney.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
 ```
 
 ## Requirements

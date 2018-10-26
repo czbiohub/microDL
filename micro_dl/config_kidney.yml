@@ -12,12 +12,12 @@ dataset:
     width: 256
 verbose: 10
 trainer:
-    model_dir: '/models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_MAE_chan1_5_global_norm_no_batchnorm_augmented'
+    model_dir: '/models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_DSSIM_chan1_5_global_norm_no_batchnorm_augmented'
     batch_size: 32
     max_epochs: 200
     patience: 30
     metrics: coeff_determination
-    loss: mean_absolute_error
+    loss: dssim_loss
     augmentations: True
     callbacks:
         EarlyStopping:
