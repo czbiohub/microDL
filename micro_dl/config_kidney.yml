@@ -1,7 +1,7 @@
 dataset:
     preprocess: False
     data_dir: '/data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/image_tile_256-256_step_64-64'
-    input_channels: [5]
+    input_channels: [1]
     target_channels: [5]
     split_by_column: sample_num
     split_ratio:
@@ -12,12 +12,12 @@ dataset:
     width: 256
 verbose: 10
 trainer:
-    model_dir: '/models_labelfree/tile256_step64_fltr8_128_lr1e-4_do0_mse_chan5_5_global_norm_no_batchnorm_augmented'
-    batch_size: 64
+    model_dir: '/models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_MAE_chan1_5_global_norm_no_batchnorm_augmented'
+    batch_size: 32
     max_epochs: 200
     patience: 30
     metrics: coeff_determination
-    loss: mean_squared_error
+    loss: mean_absolute_error
     augmentations: True
     callbacks:
         EarlyStopping:
@@ -38,7 +38,7 @@ trainer:
         name: Adam
 network:
     class: UNet2D
-    num_filters_per_block: [8, 16, 32, 64, 128]
+    num_filters_per_block: [16, 32, 64, 128, 256]
     num_convs_per_block: 2
     filter_size: 3
     batch_norm: False
@@ -46,7 +46,7 @@ network:
     pooling_type: average
     skip_merge_type: concat
     upsampling: bilinear
-    dropout: 0
+    dropout: 0.2
     residual: True
     height: 256
     width: 256
