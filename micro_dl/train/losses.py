@@ -1,4 +1,5 @@
 """Custom losses"""
+from keras.objectives import *
 from keras import backend as K
 import micro_dl.keras_contrib.backend as KC
 import tensorflow as tf
@@ -51,15 +52,15 @@ class DSSIM_Loss():
         u_true = KC.mean(patches_true, axis=-1)
         u_pred = KC.mean(patches_pred, axis=-1)
         # Get variance
-        var_true = KC.var(patches_true, axis=-1)
-        var_pred = KC.var(patches_pred, axis=-1)
+        var_true = K.var(patches_true, axis=-1)
+        var_pred = K.var(patches_pred, axis=-1)
         # Get std dev
-        covar_true_pred = KC.mean(patches_true * patches_pred, axis=-1) - u_true * u_pred
+        covar_true_pred = K.mean(patches_true * patches_pred, axis=-1) - u_true * u_pred
 
         ssim = (2 * u_true * u_pred + self.c1) * (2 * covar_true_pred + self.c2)
-        denom = (KC.square(u_true) + KC.square(u_pred) + self.c1) * (var_pred + var_true + self.c2)
+        denom = (K.square(u_true) + K.square(u_pred) + self.c1) * (var_pred + var_true + self.c2)
         ssim /= denom  # no need for clipping, c1 and c2 make the denom non-zero
-        return KC.mean((1.0 - ssim) / 2.0)
+        return K.mean((1.0 - ssim) / 2.0)
 
 
 def dssim_loss(y_true, y_pred):
