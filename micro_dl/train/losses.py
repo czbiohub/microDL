@@ -87,10 +87,9 @@ class DSSIM_Loss():
         ssim /= denom  # no need for clipping, c1 and c2 make the denom non-zero
         return K.mean((1.0 - ssim) / 2.0)
 
-
 def dssim_loss(y_true, y_pred):
     loss = DSSIM_Loss()
-    return loss(y_true, y_pred) + mean_squared_error(y_true, y_pred)
+    return loss(y_true, y_pred)
 
 def mse_binary_wtd(n_channels):
     """Converts a loss function into weighted loss function
