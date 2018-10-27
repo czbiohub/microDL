@@ -15,7 +15,7 @@ class DSSIM_Loss():
         :param k2: Parameter of the SSIM (default 0.03)
         :param kernel_size: Size of the sliding window (default 3)
         :param max_value: Max value of the output (default 1.0)
-        source: https://github.com/keras-team/keras-contrib/blob/master/keras_contrib/losses/dssim.py
+        source: https://github.com/keras-team/keras_contrib/blob/master/keras_contrib/losses/dssim.py
         """
 
         self.__name__ = 'DSSIM_Loss'
