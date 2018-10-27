@@ -9,8 +9,8 @@ import micro_dl.train.metrics as metrics
 
 def loss_DSSIM(y_true, y_pred):
     """Need tf0.11rc to work"""
-    y_true = tf.reshape(y_true, [-1] + tf.get_shape(y_pred)[1:])
-    y_pred = tf.reshape(y_pred, [-1] + tf.get_shape(y_pred)[1:])
+    y_true = tf.reshape(y_true, [-1] + list(K.int_shape(y_pred)[1:]))
+    y_pred = tf.reshape(y_pred, [-1] + list(K.int_shape(y_pred)[1:]))
     y_true = tf.transpose(y_true, [0, 2, 3, 1])
     y_pred = tf.transpose(y_pred, [0, 2, 3, 1])
     patches_true = tf.extract_image_patches(y_true, [1, 5, 5, 1], [1, 2, 2, 1], [1, 1, 1, 1], "SAME")
