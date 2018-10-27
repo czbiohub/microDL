@@ -1,6 +1,7 @@
 """Custom losses"""
 from keras.objectives import *
 from keras import backend as K
+from keras.losses import mean_squared_error
 import micro_dl.keras_contrib.backend as KC
 import tensorflow as tf
 import micro_dl.train.metrics as metrics
@@ -65,7 +66,7 @@ class DSSIM_Loss():
 
 def dssim_loss(y_true, y_pred):
     loss = DSSIM_Loss()
-    return loss(y_true, y_pred)
+    return loss(y_true, y_pred) + mean_squared_error(y_true, y_pred)
 
 def mse_binary_wtd(n_channels):
     """Converts a loss function into weighted loss function
