@@ -97,6 +97,10 @@ def dssim_loss(y_true, y_pred):
     ssim = tf.image.ssim(y_true, y_pred, max_val=1.0)
     return K.mean((1.0 - ssim) / 2.0) + 0.2 * K.mean(mae)
 
+def mean_sqrt_error(y_true, y_pred):
+    loss = K.sqrt(mean_absolute_error(y_true, y_pred))
+    return K.mean(loss)
+
 def mse_binary_wtd(n_channels):
     """Converts a loss function into weighted loss function
 
