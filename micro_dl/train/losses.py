@@ -89,13 +89,11 @@ class DSSIM_Loss():
 
 
 def dssim_loss(y_true, y_pred):
-    # loss = DSSIM_Loss()
-    # return 0.8 * loss(y_true, y_pred) + 0.2 * K.mean(mean_squared_error(y_true, y_pred))
     mae = mean_squared_error(y_true, y_pred)
     y_true = tf.transpose(y_true, [0, 2, 3, 1])
     y_pred = tf.transpose(y_pred, [0, 2, 3, 1])
-    ssim = tf.image.ssim(y_true, y_pred, max_val=1.0)
-    return K.mean((1.0 - ssim) / 2.0) + 0.2 * K.mean(mae)
+    ssim = tf.image.ssim(y_true, y_pred, max_val=10)
+    return K.mean((1.0 - ssim) / 2.0) + 0.5 * K.mean(mae)
 
 def mean_sqrt_error(y_true, y_pred):
     loss = K.sqrt(mean_absolute_error(y_true, y_pred))
