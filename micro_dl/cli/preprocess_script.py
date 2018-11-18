@@ -17,7 +17,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--config', type=str, default='micro_dl/config_preprocess_kidney.yml'
+        '--config', type=str, default=None
         , help='path to yaml configuration file'
     )
     args = parser.parse_args()

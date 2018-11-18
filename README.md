@@ -21,6 +21,8 @@ docker build -t imaging_docker:gpu_py36_cu90 -f Dockerfile.imaging_docker_py36_c
 Now you want to start a Docker container from your image, which is the virtual environment you will run your code in.
 ```buildoutcfg
 sudo nvidia-docker run -it  -v /data/sguo/:/data/sguo/ -v /data/sguo/models_labelfree:/models_labelfree -v ~/microDL:/microDL imaging_docker:gpu_py36_cu90 bash
+
+sudo nvidia-docker run -it  -v /data/sguo/:/data/sguo/ -v ~/ReconstructOrder:/ReconstructOrder imaging_docker:gpu_py36_cu90 bash
 ```
 If you look in the Dockerfile, you can see that there are two ports exposed, one is typically used for Jupyter (8888)
 and one for Tensorboard (6006). To be able to view these in your browser, you need map the port with the -p argument.
@@ -88,19 +90,19 @@ python micro_dl/cli/run_image_preprocessing.py -i <dir_name> -o <output_dir>
 To train the model using your preprocessed data, you can modify the followind config file and run:
 
 ```buildoutcfg
-ipython --pdb /microDL/micro_dl/cli/train_script.py -- --config /microDL/micro_dl/config_kidney.yml --gpu_mem_frac=0.95 --gpu=1 --action=train
+ipython --pdb /microDL/micro_dl/cli/train_script.py -- --config /microDL/micro_dl/config_kidney_confocal.yml --gpu_mem_frac=0.95 --gpu=2 --action=train
 ```
 
 ```buildoutcfg
 export CUDA_VISIBLE_DEVICES="3"
-tensorboard --logdir=/data/sguo/models_labelfree/tile256_step64_fltr8_128_lr1e-4_do0_mse_chan1_5_global_norm_no_batchnorm_augmented --port 5992
+tensorboard --logdir=/data/sguo/models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_DSSIM_MAE_max_val_10_chan1_5_global_norm_no_batchnorm_augmented --port 5990
 ```
 
 for model inference run:
 ```buildoutcfg
-ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 3 --gpu_mem_frac 0.65 --config /models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_mse_chan1_5_global_norm_no_batchnorm_augmented/config.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
+ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 0 --gpu_mem_frac 0.60 --config /models_labelfree/tile256_step64_fltr16_256_lr1e-4_do20_MSQE_chan1_5_global_norm_no_batchnorm_augmented/config.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
 
-ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 3 --gpu_mem_frac 0.60 --config /microDL/micro_dl/config_kidney.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
+ipython --pdb /microDL/micro_dl/cli/inference_script.py -- --gpu 1 --gpu_mem_frac 0.60 --config /microDL/micro_dl/config_kidney.yml --base_image_dir /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images --image_meta_fname /data/sguo/Processed/2018_07_03_KidneyTissueSection/SMS_2018_0703_1835_1_BG_2018_0703_1829_1/split_images/split_images_info.csv
 ```
 
 ## Requirements
