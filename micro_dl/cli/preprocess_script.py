@@ -68,6 +68,11 @@ def pre_process(pp_config):
     else:
         focal_plane_idx = None
 
+    if 'pos_idx' in pp_config:
+        pos_idx = pp_config['pos_idx']
+    else:
+        pos_idx = None
+
     if correct_flat_field:
         flat_field_estimator_cls = pp_config['flat_field_class']
         flat_field_estimator_cls = import_class('input.estimate_flat_field',
@@ -128,6 +133,7 @@ def pre_process(pp_config):
             )
         else:
             cropper_inst.tile_stack(focal_plane_idx=focal_plane_idx,
+                                    pos_idx=pos_idx,
                                     hist_clip_limits=hist_clip_limits)
 
 

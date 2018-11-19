@@ -29,7 +29,7 @@ def import_class(module_name, cls_name):
 
 
 def get_row_idx(study_metadata, timepoint_idx,
-                channel_idx, focal_plane_idx=None):
+                channel_idx, focal_plane_idx=None, pos_idx=None):
     """Get the indices for images with timepoint_idx and channel_idx
 
     :param pd.DataFrame study_metadata: DF with columns timepoint,
@@ -40,13 +40,17 @@ def get_row_idx(study_metadata, timepoint_idx,
     :param int focal_plane: get info for this focal plane (2D)
     """
 
+    row_idx = ((study_metadata['timepoint'] == timepoint_idx) &
+               (study_metadata['channel_num'] == channel_idx))
+
     if focal_plane_idx is not None:
-        row_idx = ((study_metadata['timepoint'] == timepoint_idx) &
-                   (study_metadata['channel_num'] == channel_idx) &
+        row_idx = (row_idx &
                    (study_metadata['slice_num'].isin(focal_plane_idx)))
-    else:
-        row_idx = ((study_metadata['timepoint'] == timepoint_idx) &
-                   (study_metadata['channel_num'] == channel_idx))
+
+    if pos_idx is not None:
+        row_idx = (row_idx &
+                   (study_metadata['sample_num'].isin(pos_idx)))
+
     return row_idx
 
 

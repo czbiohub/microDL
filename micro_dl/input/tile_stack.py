@@ -157,7 +157,8 @@ class ImageStackTiler:
             self._save_tiled_images(cropped_image_data, row,
                                     channel_dir, metadata)
 
-    def tile_stack(self, focal_plane_idx=None, hist_clip_limits=None):
+    def tile_stack(self, focal_plane_idx=None, pos_idx=None,
+                   hist_clip_limits=None):
         """Tiles images in the specified channels.
 
         Saves a csv with columns ['timepoint', 'channel_num', 'sample_num',
@@ -176,7 +177,8 @@ class ImageStackTiler:
             os.makedirs(tp_dir, exist_ok=True)
             for channel in self.tile_channels:
                 row_idx = get_row_idx(
-                    self.volume_metadata, tp_idx, channel, focal_plane_idx
+                    self.volume_metadata, tp_idx, channel, focal_plane_idx,
+                    pos_idx
                 )
                 channel_metadata = self.volume_metadata[row_idx]
                 channel_dir = os.path.join(tp_dir,

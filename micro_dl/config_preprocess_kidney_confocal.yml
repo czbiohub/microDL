@@ -1,5 +1,6 @@
 base_output_dir: '/data/sguo/Processed/2018_11_01_kidney_slice/SMS_2018_1101_1906_1_BG_2018_1101_1906_1'
 focal_plane_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,22, 23, 24, 25]
+pos_idx: []
 verbose: 10
 split_volumes: False
 splitter_class: LifStackSplitter2D
