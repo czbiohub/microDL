@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Train neural network models in keras"""
 import argparse
-from keras import Model
-import keras.backend as K
-from keras.utils import plot_model
+from tensorflow.keras import Model
+import tensorflow.keras.backend as K
+from tensorflow.keras.utils import plot_model
 import os
 import pandas as pd
 import tensorflow as tf

@@ -1,10 +1,10 @@
 """Network related util functions"""
-from keras.layers import (Activation, AveragePooling2D, AveragePooling3D,
+from tensorflow.keras.layers import (Activation, AveragePooling2D, AveragePooling3D,
                           Cropping2D, Cropping3D, Conv2D, Conv3D,
                           MaxPooling2D, MaxPooling3D,
                           UpSampling2D, UpSampling3D)
-import keras.layers.advanced_activations as advanced_activations
-from keras import activations as basic_activations
+import tensorflow.keras.layers.advanced_activations as advanced_activations
+from tensorflow.keras import activations as basic_activations
 import numpy as np
 
 
