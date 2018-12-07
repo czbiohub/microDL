@@ -1,5 +1,4 @@
 """Network related util functions"""
-
 import numpy as np
 import tensorflow as tf
 
