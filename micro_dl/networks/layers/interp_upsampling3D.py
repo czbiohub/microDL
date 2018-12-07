@@ -1,5 +1,5 @@
 """Nearest/Bilinear interpolation in 3D"""
-from tensorflow.keras.engine import InputSpec
+from tensorflow.keras.layers import InputSpec
 import numpy as np
 import tensorflow as tf
 

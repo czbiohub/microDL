@@ -1,7 +1,7 @@
 """Nearest/Bilinear interpolation in 2D"""
 from abc import ABCMeta
 from tensorflow.keras import backend as K
-from tensorflow.keras.engine import Layer, InputSpec
+from tensorflow.keras.layers import Layer, InputSpec
 import numpy as np
 import tensorflow as tf
 

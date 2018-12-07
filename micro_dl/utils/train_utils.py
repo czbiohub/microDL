@@ -1,6 +1,7 @@
 """Utility functions used for training"""
 from tensorflow.keras import backend as K, losses as keras_losses, \
     metrics as keras_metrics
+import tensorflow as tf
 import numpy as np
 import subprocess
 
@@ -140,8 +141,8 @@ def split_train_val_test(sample_set, train_ratio, test_ratio,
 def set_keras_session(gpu_ids, gpu_mem_frac):
     """Set the Keras session"""
 
-    assert K.backend() == 'tensorflow'
-    tf = K.tf
+    # assert K.backend() == 'tensorflow'
+    # tf = K.tf
     # assumes only one process is run per GPU, if not get num_processes and
     # change accordingly
     gpu_options = tf.GPUOptions(visible_device_list=str(gpu_ids),
