@@ -1,6 +1,5 @@
 """Base class for U-net"""
 import tensorflow as tf
-from tensorflow.keras.layers import Activation, Input, UpSampling2D, UpSampling3D
 
 from micro_dl.networks.base_conv_net import BaseConvNet
 from micro_dl.networks.conv_blocks import conv_block,  residual_conv_block, \
@@ -63,7 +62,7 @@ class BaseUNet(BaseConvNet):
         def _init_2D():
             self.config['num_dims'] = 2
             if upsampling == 'repeat':
-                self.UpSampling = UpSampling2D
+                self.UpSampling = tf.keras.layers.UpSampling2D
             else:
                 self.UpSampling = aux_utils.import_object(
                     'networks',
@@ -74,7 +73,7 @@ class BaseUNet(BaseConvNet):
         def _init_3D():
             self.config['num_dims'] = 3
             if upsampling == 'repeat':
-                self.UpSampling = UpSampling3D
+                self.UpSampling = tf.keras.layers.UpSampling3D
             else:
                 self.UpSampling = aux_utils.import_object(
                     'networks',
@@ -201,7 +200,9 @@ class BaseUNet(BaseConvNet):
         """Assemble the network"""
 
         with tf.name_scope('input'):
-            input_layer = inputs = Input(shape=self._get_input_shape)
+            input_layer = inputs = tf.keras.layers.Input(
+                shape=self._get_input_shape,
+            )
 
         # ---------- Downsampling + middle blocks ---------
         skip_layers_list = []
@@ -237,5 +238,5 @@ class BaseUNet(BaseConvNet):
                 padding=self.config['padding'],
                 kernel_initializer=self.config['init'],
                 data_format=self.config['data_format'])(input_layer)
-            outputs = Activation(final_activation)(layer)
+            outputs = tf.keras.layers.Activation(final_activation)(layer)
         return inputs, outputs

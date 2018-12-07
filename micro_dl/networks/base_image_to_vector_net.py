@@ -2,9 +2,6 @@
 import numpy as np
 import tensorflow as tf
 import warnings
-from tensorflow.keras.layers import BatchNormalization, Conv2D, Conv3D, Dense,\
-    Dropout, Input, Flatten
-import tensorflow.keras.regularizers as k_regularizers
 
 from micro_dl.networks.base_conv_net import BaseConvNet
 from micro_dl.networks.conv_blocks import conv_block,\
@@ -61,10 +58,10 @@ class BaseImageToVectorNet(BaseConvNet):
 
         if 'depth' in self.config and self.config['depth'] > 1:
             self.config['num_dims'] = 3
-            self.conv = Conv3D
+            self.conv = tf.keras.layers.Conv3D
         else:
             self.config['num_dims'] = 2
-            self.conv = Conv2D
+            self.conv = tf.keras.layers.Conv2D
 
         if 'num_initial_filters' in self.config:
             msg = 'Input image dimensions has to be in powers of 2 as the' \
@@ -106,7 +103,8 @@ class BaseImageToVectorNet(BaseConvNet):
         """Get kernel/activity regularizer"""
 
         kernel_reg_dict = self.config['dense']['kernel_regularizer']
-        kernel_reg_object = getattr(k_regularizers, kernel_reg_dict['type'])
+        kernel_reg_object = getattr(tf.keras.regularizers,
+                                    kernel_reg_dict['type'])
         if 'lambda' in kernel_reg_dict:
             kernel_reg_inst = kernel_reg_object(kernel_reg_dict['lambda'])
         else:
@@ -131,7 +129,9 @@ class BaseImageToVectorNet(BaseConvNet):
         """Assemble the network"""
 
         with tf.name_scope('input'):
-            input_layer = inputs = Input(shape=self._get_input_shape)
+            input_layer = inputs = tf.keras.layers.Input(
+                shape=self._get_input_shape,
+            )
 
         # ----------------------- convolution blocks --------------------
         for block_idx in range(self.num_conv_blocks):
@@ -192,7 +192,7 @@ class BaseImageToVectorNet(BaseConvNet):
 
         prev_dense_layer = layer
         if self.config['dense']['type'] == 'dense':
-            prev_dense_layer = Flatten()(layer)
+            prev_dense_layer = tf.keras.layers.Flatten()(layer)
 
         for dense_idx in range(len(dense_units)):
             block_name = 'dense_{}'.format(dense_idx + 1)
@@ -203,7 +203,7 @@ class BaseImageToVectorNet(BaseConvNet):
             # can't choose b/w dropout and regularization, use both ¯\_(ツ)_/¯
             with tf.name_scope(block_name):
                 if self.config['dense']['type'] == 'dense':
-                    layer = Dense(
+                    layer = tf.keras.layers.Dense(
                         units=dense_units[dense_idx],
                         kernel_initializer=self.config['init'],
                         kernel_regularizer=kernel_reg_inst
@@ -218,22 +218,24 @@ class BaseImageToVectorNet(BaseConvNet):
                         data_format=self.config['data_format']
                     )(prev_dense_layer)
 
-                layer = BatchNormalization()(layer)
+                layer = tf.keras.layers.BatchNormalization()(layer)
                 activation_layer_instance = create_activation_layer(
                     self.config['activation']
                 )
                 layer = activation_layer_instance(layer)
                 if 'dropout' in self.config['dense']:
-                    layer = Dropout(self.config['dense']['dropout'])(layer)
+                    layer = tf.keras.layers.Dropout(
+                        self.config['dense']['dropout'])(layer)
             prev_dense_layer = layer
 
         # --------------------- output block -------------------------
         final_activation = self.config['final_activation']
         with tf.name_scope('output'):
             if self.config['dense']['type'] == 'dense':
-                outputs = Dense(regression_length,
-                                kernel_initializer='he_normal',
-                                activation=final_activation)(prev_dense_layer)
+                outputs = tf.keras.layers.Dense(
+                    regression_length,
+                    kernel_initializer='he_normal',
+                    activation=final_activation)(prev_dense_layer)
             else:
                 kernel_shape = (1,) * self.config['num_dims']
                 outputs = self.conv(
@@ -243,5 +245,5 @@ class BaseImageToVectorNet(BaseConvNet):
                     kernel_initializer='he_normal',
                     data_format=self.config['data_format']
                 )(prev_dense_layer)
-                outputs = Flatten()(outputs)
+                outputs = tf.keras.layers.Flatten()(outputs)
         return inputs, outputs

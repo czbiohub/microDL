@@ -1,12 +1,12 @@
 """Dataset classes"""
 
-import tensorflow.keras as keras
 import numpy as np
 import os
 import pandas as pd
+import tensorflow as tf
 
 
-class BaseDataSet(keras.utils.Sequence):
+class BaseDataSet(tf.keras.utils.Sequence):
     """Base class for input and target images
 
     https://www.tensorflow.org/api_docs/python/tf/keras/utils/Sequence

@@ -1,9 +1,7 @@
 """Keras trainer"""
-from tensorflow.keras import callbacks as keras_callbacks
-from tensorflow.keras import optimizers as keras_optimizers
 import os
 import time
-
+import tensorflow as tf
 
 import micro_dl.train.learning_rates as custom_learning
 from micro_dl.train.losses import masked_loss
@@ -78,7 +76,7 @@ class BaseKerasTrainer:
         opt = self.config['optimizer']['name']
         lr = self.config['optimizer']['lr']
         try:
-            opt_cls = getattr(keras_optimizers, opt)
+            opt_cls = getattr(tf.keras.optimizers, opt)
             return opt_cls(lr=lr)
         except Exception as e:
             self.logger.error('Optimizer not valid: ' + str(e))
@@ -89,7 +87,7 @@ class BaseKerasTrainer:
         callbacks_config = self.config['callbacks']
         callbacks = []
         for cb_dict in callbacks_config:
-            cb_cls = getattr(keras_callbacks, cb_dict)
+            cb_cls = getattr(tf.keras.callbacks, cb_dict)
             if cb_dict == 'ModelCheckpoint':
                 if callbacks_config[cb_dict]['save_best_only']:
                     assert callbacks_config[cb_dict]['monitor'] == 'val_loss',\
@@ -160,7 +158,7 @@ class BaseKerasTrainer:
                 cur_cb = None
             callbacks.append(cur_cb)
 
-        csv_logger = keras_callbacks.CSVLogger(
+        csv_logger = tf.keras.callbacks.CSVLogger(
             filename=os.path.join(self.model_dir, 'history.csv'),
             append=self.resume_training
         )

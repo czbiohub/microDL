@@ -1,6 +1,6 @@
 """Custom metrics"""
-import tensorflow.keras.backend as K
 import tensorflow as tf
+import tensorflow.keras.backend as K
 
 
 def coeff_determination(y_true, y_pred):

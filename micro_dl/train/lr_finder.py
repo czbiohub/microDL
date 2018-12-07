@@ -1,10 +1,9 @@
-import tensorflow.keras.backend as K
-from tensorflow.keras.callbacks import Callback
+import tensorflow as tf
 
 import micro_dl.plotting.plot_utils as plot_utils
 
 
-class LRFinder(Callback):
+class LRFinder(tf.keras.callbacks.Callback):
 
     def __init__(
             self,
@@ -52,7 +51,7 @@ class LRFinder(Callback):
         """
         logs = logs or {}
 
-        K.set_value(self.model.optimizer.lr, self.base_lr)
+        tf.keras.backend.set_value(self.model.optimizer.lr, self.base_lr)
         self.total_steps = self.max_epochs * self.params['steps']
         self.step_size = (self.max_lr - self.base_lr) / self.total_steps
 
@@ -69,7 +68,7 @@ class LRFinder(Callback):
         if self.iterations >= self.total_steps or self.local_lr >= self.max_lr:
             self.model.stop_training = True
         self.local_lr = self.base_lr + self.iterations * self.step_size
-        K.set_value(self.model.optimizer.lr, self.local_lr)
+        tf.keras.backend.set_value(self.model.optimizer.lr, self.local_lr)
         self.losses.append(logs.get('loss'))
         self.lrs.append(self.local_lr)
 

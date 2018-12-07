@@ -1,12 +1,10 @@
 """Nearest/Bilinear interpolation in 2D"""
 from abc import ABCMeta
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Layer, InputSpec
 import numpy as np
 import tensorflow as tf
 
 
-class InterpUpSampling2D(Layer, metaclass=ABCMeta):
+class InterpUpSampling2D(tf.keras.layers.Layer, metaclass=ABCMeta):
     """Interpolates the feature map for upsampling"""
 
     def __init__(self, size=(2, 2), interp_type='nearest',
@@ -52,7 +50,7 @@ class InterpUpSampling2D(Layer, metaclass=ABCMeta):
         :param tuple/list/np.array input_shape: shape of the input tensor
         """
 
-        self.input_spec = [InputSpec(shape=input_shape, ndim=4)]
+        self.input_spec = [tf.keras.layers.InputSpec(shape=input_shape, ndim=4)]
         super().build(input_shape)
 
     def _get_output_shape(self, input_shape):
@@ -98,7 +96,7 @@ class InterpUpSampling2D(Layer, metaclass=ABCMeta):
         :return: resized tensor
         """
 
-        original_shape = K.int_shape(x)
+        original_shape = tf.keras.backend.int_shape(x)
         new_shape = tf.shape(x)[1:3]
         if size is None:
             size = self.size[0:2]
@@ -129,7 +127,7 @@ class InterpUpSampling2D(Layer, metaclass=ABCMeta):
         :return: upsampled tensor
         """
 
-        original_shape = K.int_shape(x)
+        original_shape = tf.keras.backend.int_shape(x)
         if self.data_format == 'channels_first':
             #  convert to channel_last
             x = tf.transpose(x, [0, 2, 3, 1])

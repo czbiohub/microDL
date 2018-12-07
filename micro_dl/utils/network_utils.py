@@ -1,11 +1,7 @@
 """Network related util functions"""
-from tensorflow.keras.layers import (Activation, AveragePooling2D, AveragePooling3D,
-                          Cropping2D, Cropping3D, Conv2D, Conv3D,
-                          MaxPooling2D, MaxPooling3D,
-                          UpSampling2D, UpSampling3D)
-import tensorflow.keras.layers.advanced_activations as advanced_activations
-from tensorflow.keras import activations as basic_activations
+
 import numpy as np
+import tensorflow as tf
 
 
 def get_keras_layer(type, num_dims):
@@ -20,26 +16,26 @@ def get_keras_layer(type, num_dims):
     assert type in ('conv', 'max', 'average', 'upsampling', 'cropping')
     if num_dims == 2:
         if type == 'conv':
-            return Conv2D
+            return tf.keras.layers.Conv2D
         elif type == 'max':
-            return MaxPooling2D
+            return tf.keras.layers.MaxPooling2D
         elif type == 'average':
-            return AveragePooling2D
+            return tf.keras.layers.AveragePooling2D
         elif type == 'cropping':
-            return Cropping2D
+            return tf.keras.layers.Cropping2D
         else:
-            return UpSampling2D
+            return tf.keras.layers.UpSampling2D
     else:
         if type == 'conv':
-            return Conv3D
+            return tf.keras.layers.Conv3D
         elif type == 'max':
-            return MaxPooling3D
+            return tf.keras.layers.MaxPooling3D
         elif type == 'average':
-            return AveragePooling3D
+            return tf.keras.layers.AveragePooling3D
         elif type == 'cropping':
-            return Cropping3D
+            return tf.keras.layers.Cropping3D
         else:
-            return UpSampling3D
+            return tf.keras.layers.UpSampling3D
 
 
 def create_activation_layer(activation_dict):
@@ -51,8 +47,8 @@ def create_activation_layer(activation_dict):
     :return keras.layer: instance of activation layer
     """
 
-    if hasattr(advanced_activations, activation_dict['type']):
-        activation_layer = getattr(advanced_activations,
+    if hasattr(tf.keras.layers.advanced_activations, activation_dict['type']):
+        activation_layer = getattr(tf.keras.layers.advanced_activations,
                                    activation_dict['type'])
         if 'params' in activation_dict:
             activation_layer_instance = activation_layer(
@@ -60,8 +56,10 @@ def create_activation_layer(activation_dict):
             )
         else:
             activation_layer_instance = activation_layer()
-    elif hasattr(basic_activations, activation_dict['type']):
-        activation_layer_instance = Activation(activation_dict['type'])
+    elif hasattr(tf.keras.layers.activations, activation_dict['type']):
+        activation_layer_instance = tf.keras.layers.Activation(
+            activation_dict['type'],
+        )
     else:
         raise ValueError('%s is not a valid activation type'
                          % activation_dict['type'])

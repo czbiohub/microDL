@@ -1,5 +1,5 @@
 """Nearest/Bilinear interpolation in 3D"""
-from tensorflow.keras.layers import InputSpec
+
 import numpy as np
 import tensorflow as tf
 
@@ -34,7 +34,7 @@ class InterpUpSampling3D(InterpUpSampling2D):
         :param tuple/list/np.array input_shape: shape of the input tensor
         """
 
-        self.input_spec = [InputSpec(shape=input_shape, ndim=5)]
+        self.input_spec = [tf.keras.layers.InputSpec(shape=input_shape, ndim=5)]
         super().build(input_shape)
 
     def _get_output_shape(self, input_shape):

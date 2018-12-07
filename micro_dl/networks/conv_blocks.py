@@ -1,6 +1,4 @@
 """Collection of different conv blocks typically used in conv nets"""
-from tensorflow.keras.layers import BatchNormalization, Dropout, Lambda
-from tensorflow.keras.layers import Add, Concatenate
 import tensorflow as tf
 
 from micro_dl.utils.aux_utils import get_channel_axis
@@ -39,7 +37,7 @@ def conv_block(layer, network_config, block_idx):
                     kernel_initializer=network_config['init'],
                     data_format=network_config['data_format'])(layer)
             elif cur_layer_type == 'bn' and network_config['batch_norm']:
-                layer = BatchNormalization(
+                layer = tf.keras.layers.BatchNormalization(
                     axis=get_channel_axis(network_config['data_format'])
                 )(layer)
             else:
@@ -49,7 +47,7 @@ def conv_block(layer, network_config, block_idx):
                 layer = activation_layer_instance(layer)
 
         if network_config['dropout']:
-            layer = Dropout(network_config['dropout'])(layer)
+            layer = tf.keras.layers.Dropout(network_config['dropout'])(layer)
 
     return layer
 
@@ -87,7 +85,7 @@ def downsample_conv_block(layer,
                     kernel_initializer=network_config['init'],
                     data_format=network_config['data_format'])(layer)
             elif cur_layer_type == 'bn' and network_config['batch_norm']:
-                layer = BatchNormalization(
+                layer = tf.keras.layers.BatchNormalization(
                     axis=get_channel_axis(network_config['data_format'])
                 )(layer)
             else:
@@ -97,7 +95,7 @@ def downsample_conv_block(layer,
                 layer = activation_layer_instance(layer)
 
         if network_config['dropout']:
-            layer = Dropout(network_config['dropout'])(layer)
+            layer = tf.keras.layers.Dropout(network_config['dropout'])(layer)
     return layer
 
 
@@ -203,10 +201,11 @@ def _merge_residual(final_layer,
     num_input_layers = int(input_layer.get_shape()[channel_axis])
     # crop input if padding='valid'
     if padding == 'valid':
-        input_layer = Lambda(_crop_layer,
-                             arguments={'final_layer': final_layer,
-                                        'data_format': data_format,
-                                        'num_dims': num_dims})(input_layer)
+        input_layer = tf.keras.layers.Lambda(
+            _crop_layer,
+            arguments={'final_layer': final_layer,
+                       'data_format': data_format,
+                       'num_dims': num_dims})(input_layer)
 
     if num_input_layers > num_final_layers:
         # use 1x 1 to get to the desired num of feature maps
@@ -218,11 +217,11 @@ def _merge_residual(final_layer,
             data_format=data_format)(input_layer)
     elif num_input_layers < num_final_layers:
         # padding with zeros along channels
-        input_layer = Lambda(
-                      pad_channels,
-                      arguments={'final_layer': final_layer,
-                                 'channel_axis': channel_axis})(input_layer)
-    layer = Add()([final_layer, input_layer])
+        input_layer = tf.keras.layers.Lambda(
+            pad_channels,
+            arguments={'final_layer': final_layer,
+                       'channel_axis': channel_axis})(input_layer)
+    layer = tf.keras.layers.Add()([final_layer, input_layer])
     return layer
 
 
@@ -245,20 +244,21 @@ def skip_merge(skip_layers,
     channel_axis = get_channel_axis(data_format)
     # crop input if padding='valid'
     if padding == 'valid':
-        skip_layers = Lambda(_crop_layer,
-                             arguments={'final_layer': upsampled_layers,
-                                        'data_format': data_format,
-                                        'num_dims': num_dims})(skip_layers)
+        skip_layers = tf.keras.layers.Lambda(
+            _crop_layer,
+            arguments={'final_layer': upsampled_layers,
+                       'data_format': data_format,
+                       'num_dims': num_dims})(skip_layers)
 
     if skip_merge_type == 'concat':
-        layer = Concatenate(axis=channel_axis)([upsampled_layers,
-                                                skip_layers])
+        layer = tf.keras.layers.Concatenate(axis=channel_axis)(
+            [upsampled_layers, skip_layers])
     else:
-        skip_layers = Lambda(
+        skip_layers = tf.keras.layers.Lambda(
             pad_channels,
             arguments={'final_layer': upsampled_layers,
                        'channel_axis': channel_axis})(skip_layers)
-        layer = Add()([upsampled_layers, skip_layers])
+        layer = tf.keras.layers.Add()([upsampled_layers, skip_layers])
     return layer
 
 

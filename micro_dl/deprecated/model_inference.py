@@ -302,7 +302,12 @@ class ModelEvaluator:
         ip_channel_ids = self.config['dataset']['input_channels']
         op_channel_ids = self.config['dataset']['target_channels']
         tp_channel_ids = aux_utils.validate_metadata_indices(
+<<<<<<< HEAD:micro_dl/deprecated/model_inference.py
             image_meta, time_ids=timepoint_ids
+=======
+            image_meta,
+            time_ids=timepoint_ids,
+>>>>>>> c987a89... tf.keras:micro_dl/train/model_inference.py
         )
         tp_idx = tp_channel_ids['timepoints']
         tile_size = [self.config['network']['height'],
@@ -329,7 +334,11 @@ class ModelEvaluator:
             # get the meta for all images in tp_dir and channel_dir
             row_idx_ip0 = aux_utils.get_row_idx(
                 image_meta, tp, ip_channel_ids[0],
+<<<<<<< HEAD:micro_dl/deprecated/model_inference.py
                 slice_idx=focal_plane_idx
+=======
+                slice_idx=focal_plane_idx,
+>>>>>>> c987a89... tf.keras:micro_dl/train/model_inference.py
             )
             ip0_meta = image_meta[row_idx_ip0]
 

@@ -1,9 +1,7 @@
 """Utility functions used for training"""
-from tensorflow.keras import backend as K, losses as keras_losses, \
-    metrics as keras_metrics
-import tensorflow as tf
 import numpy as np
 import subprocess
+import tensorflow as tf
 
 from micro_dl.train import losses as custom_losses, metrics as custom_metrics
 
@@ -154,7 +152,7 @@ def set_keras_session(gpu_ids, gpu_mem_frac):
     # log_device_placement to find out which devices the operations and tensors
     # are assigned to
     sess = tf.Session(config=config)
-    K.set_session(sess)
+    tf.keras.backend.set_session(sess)
     return sess
 
 
@@ -162,8 +160,8 @@ def get_loss(loss_str):
     """Get loss type from config"""
 
     def _get_one_loss(cur_loss_str):
-        if hasattr(keras_losses, cur_loss_str):
-            loss_cls = getattr(keras_losses, cur_loss_str)
+        if hasattr(tf.keras.losses, cur_loss_str):
+            loss_cls = getattr(tf.keras.losses, cur_loss_str)
         elif hasattr(custom_losses, cur_loss_str):
             loss_cls = getattr(custom_losses, cur_loss_str)
         else:
@@ -189,8 +187,8 @@ def get_metrics(metrics_list):
         metrics_list = [metrics_list]
 
     for m in metrics_list:
-        if hasattr(keras_metrics, m):
-            cur_metric_cls = getattr(keras_metrics, m)
+        if hasattr(tf.keras.metrics, m):
+            cur_metric_cls = getattr(tf.keras.metrics, m)
         elif hasattr(custom_metrics, m):
             cur_metric_cls = getattr(custom_metrics, m)
         else:

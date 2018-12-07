@@ -1,7 +1,6 @@
 """Unet for 3D volumes with anisotropic shape"""
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.layers import Activation, Conv3D, Input
 
 from micro_dl.networks.base_unet import BaseUNet
 from micro_dl.networks.conv_blocks import conv_block, residual_conv_block
@@ -95,7 +94,9 @@ class UNetStackToStack(BaseUNet):
         """Assemble the network"""
 
         with tf.name_scope('input'):
-            input_layer = inputs = Input(shape=self._get_input_shape)
+            input_layer = inputs = tf.keras.layers.Input(
+                shape=self._get_input_shape,
+            )
 
         # ---------- Downsampling + middle blocks ---------
         init_filter_size = self.config['filter_size']
@@ -137,12 +138,13 @@ class UNetStackToStack(BaseUNet):
         # ------------ output block ------------------------
         final_activation = self.config['final_activation']
         with tf.name_scope('output'):
-            layer = Conv3D(filters=1,
-                           kernel_size=(1, 1, 1),
-                           padding='same',
-                           kernel_initializer='he_normal',
-                           data_format=self.config['data_format'])(input_layer)
-        outputs = Activation(final_activation)(layer)
+            layer = tf.keras.layers.Conv3D(
+                filters=1,
+                kernel_size=(1, 1, 1),
+                padding='same',
+                kernel_initializer='he_normal',
+                data_format=self.config['data_format'])(input_layer)
+        outputs = tf.keras.layers.Activation(final_activation)(layer)
         return inputs, outputs
 
     @property

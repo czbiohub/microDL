@@ -1,7 +1,7 @@
 """Tests for Image3DToVectorNet"""
-from keras import Model
 import nose.tools
 import numpy as np
+import tensorflow as tf
 import unittest
 
 from micro_dl.networks import Image3DToVectorNet
@@ -37,7 +37,7 @@ class TestImage3DToVectorNet(unittest.TestCase):
 
         self.net = Image3DToVectorNet(self.network_config)
         inputs, outputs = self.net.build_net()
-        self.model = Model(inputs, outputs)
+        self.model = tf.keras.Model(inputs, outputs)
         self.model_layers = self.model.layers
 
     def test_Image3DToVectorNet_init(self):
@@ -123,7 +123,7 @@ class TestImage3DToVectorNet(unittest.TestCase):
                 self.network_config.pop('num_filters_per_block')
                 self.net = Image3DToVectorNet(self.network_config)
                 inputs, outputs = self.net.build_net()
-                self.model = Model(inputs, outputs)
+                self.model = tf.keras.Model(inputs, outputs)
                 self.model_layers = self.model.layers
 
             for idx, dense_idx in enumerate(dense_block_idx):
@@ -142,7 +142,7 @@ class TestImage3DToVectorNet(unittest.TestCase):
         self.network_config['dense']['type'] = 'conv'
         self.net = Image3DToVectorNet(self.network_config)
         inputs, outputs = self.net.build_net()
-        self.model = Model(inputs, outputs)
+        self.model = tf.keras.Model(inputs, outputs)
         self.model_layers = self.model.layers
 
         conv_idx = [0, 4]

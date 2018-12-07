@@ -1,10 +1,8 @@
 import numpy as np
-
-from tensorflow.keras.callbacks import Callback
-from tensorflow.keras import backend as K
+import tensorflow as tf
 
 
-class CyclicLearning(Callback):
+class CyclicLearning(tf.keras.callbacks.Callback):
     """
     Custom Callback implementing cyclical learning rate (CLR) as in the paper:
     https://arxiv.org/abs/1506.01186.
@@ -78,7 +76,7 @@ class CyclicLearning(Callback):
         """
         logs = logs or {}
 
-        K.set_value(self.model.optimizer.lr, self.base_lr)
+        tf.keras.backend.set_value(self.model.optimizer.lr, self.base_lr)
 
     def on_batch_end(self, batch, logs=None):
         """
@@ -92,7 +90,7 @@ class CyclicLearning(Callback):
 
         self.iterations += 1
         print(" - clr: {:0.5f}".format(self.clr()))
-        K.set_value(self.model.optimizer.lr, self.clr())
+        tf.keras.backend.set_value(self.model.optimizer.lr, self.clr())
 
     def on_epoch_end(self, epoch, logs):
         """
@@ -102,4 +100,4 @@ class CyclicLearning(Callback):
         :param epoch: Epoch number from Callback super class
         :param logs: Log from super class
         """
-        logs['learning_rate'] = K.get_value(self.model.optimizer.lr)
+        logs['learning_rate'] = tf.keras.backend.get_value(self.model.optimizer.lr)
