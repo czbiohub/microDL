@@ -2,9 +2,9 @@
 import numpy as np
 import tensorflow as tf
 import warnings
-from keras.layers import BatchNormalization, Conv2D, Conv3D, Dense, Dropout, \
+from tensorflow.keras.layers import BatchNormalization, Conv2D, Conv3D, Dense, Dropout, \
     Input, Flatten
-import keras.regularizers as k_regularizers
+import tensorflow.keras.regularizers as k_regularizers
 
 from micro_dl.networks.base_conv_net import BaseConvNet
 from micro_dl.networks.conv_blocks import conv_block,\

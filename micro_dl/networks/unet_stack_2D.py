@@ -1,7 +1,7 @@
 """Predict the center slice from a stack of 3-5 slices"""
 import tensorflow as tf
 import warnings
-from keras.layers import Activation, Conv3D, Input
+from tensorflow.keras.layers import Activation, Conv3D, Input
 
 from micro_dl.networks.base_unet import BaseUNet
 from micro_dl.networks.conv_blocks import conv_block, residual_conv_block

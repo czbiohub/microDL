@@ -1,6 +1,6 @@
 """Base class for U-net"""
 import tensorflow as tf
-from keras.layers import Activation, Input, UpSampling2D, UpSampling3D
+from tensorflow.keras.layers import Activation, Input, UpSampling2D, UpSampling3D
 
 from micro_dl.networks.base_conv_net import BaseConvNet
 from micro_dl.networks.conv_blocks import conv_block,  residual_conv_block, \
