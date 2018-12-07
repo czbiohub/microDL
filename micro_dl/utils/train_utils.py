@@ -154,7 +154,7 @@ def set_keras_session(gpu_ids, gpu_mem_frac):
     # log_device_placement to find out which devices the operations and tensors
     # are assigned to
     sess = tf.Session(config=config)
-    K.set_session(sess)
+    tf.keras.backend.set_session(sess)
     return sess
 
 
