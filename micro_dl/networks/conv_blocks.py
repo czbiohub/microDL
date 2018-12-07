@@ -1,6 +1,6 @@
 """Collection of different conv blocks typically used in conv nets"""
-from keras.layers import BatchNormalization, Dropout, Lambda
-from keras.layers.merge import Add, Concatenate
+from tensorflow.keras.layers import BatchNormalization, Dropout, Lambda
+from tensorflow.keras.layers import Add, Concatenate
 import tensorflow as tf
 
 from micro_dl.utils.aux_utils import get_channel_axis

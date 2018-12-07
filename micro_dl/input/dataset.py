@@ -1,6 +1,6 @@
 """Dataset classes"""
 
-import keras
+import tensorflow.keras as keras
 import numpy as np
 import os
 import pandas as pd

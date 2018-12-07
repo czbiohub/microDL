@@ -1,7 +1,7 @@
 import numpy as np
 
-from keras.callbacks import Callback
-from keras import backend as K
+from tensorflow.keras.callbacks import Callback
+from tensorflow.keras import backend as K
 
 
 class CyclicLearning(Callback):

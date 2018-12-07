@@ -1,10 +1,10 @@
 """Tests for UNet3D"""
 import unittest
 
-import keras.backend as K
+import tensorflow.keras.backend as K
 import nose.tools
 import numpy as np
-from keras import Model
+from tensorflow.keras import Model
 
 from micro_dl.networks import UNet3D
 

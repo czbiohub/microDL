@@ -1,7 +1,7 @@
 """Tests for  conv_blocks"""
-import keras.backend as K
-from keras import Model
-from keras import layers as k_layers
+import tensorflow.keras.backend as K
+from tensorflow.keras import Model
+from tensorflow.keras import layers as k_layers
 import nose.tools
 import numpy as np
 import unittest

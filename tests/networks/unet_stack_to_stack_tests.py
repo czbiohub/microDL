@@ -1,7 +1,7 @@
 """Tests for UNetStackToStack"""
 
-import keras.backend as K
-from keras import Model
+import tensorflow.keras.backend as K
+from tensorflow.keras import Model
 import nose.tools
 import numpy as np
 import unittest

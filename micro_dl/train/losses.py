@@ -1,6 +1,5 @@
 """Custom losses"""
-from keras import backend as K
-from keras.losses import mean_absolute_error
+from tensorflow.keras import backend as K
 import tensorflow as tf
 
 import micro_dl.train.metrics as metrics

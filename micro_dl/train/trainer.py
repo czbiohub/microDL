@@ -1,6 +1,6 @@
 """Keras trainer"""
-from keras import callbacks as keras_callbacks
-from keras import optimizers as keras_optimizers
+from tensorflow.keras import callbacks as keras_callbacks
+from tensorflow.keras import optimizers as keras_optimizers
 import os
 import time
 
