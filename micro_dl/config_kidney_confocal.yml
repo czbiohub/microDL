@@ -1,6 +1,6 @@
 dataset:
     preprocess: False
-    data_dir: '/data/sguo/Processed/2018_11_01_kidney_slice/SMS_2018_1101_1906_1_BG_2018_1101_1906_1/image_tile_256-256_step_128-128'
+    data_dir: '/data/sguo/Processed/2018_11_01_kidney_slice/SMS_2018_1101_1906_1_BG_2018_1101_1906_1/image_tile_256-256_step_128-128_curated'
     input_channels: [1]
     target_channels: [6]
     split_by_column: sample_num
@@ -12,8 +12,8 @@ dataset:
     width: 256
 verbose: 10
 trainer:
-    model_dir: '/models_kidney_confocal/tile256_step128_fltr16_256_lr1e-3_do0_MSE_chan1_6_global_norm_augmented'
-    batch_size: 32
+    model_dir: '/models_kidney_confocal/tile256_step128_curated_fltr16_256_lr1e-4_do20_MSE_chan1_6_global_norm_augmented'
+    batch_size: 24
     max_epochs: 200
     patience: 30
     metrics: coeff_determination
@@ -34,7 +34,7 @@ trainer:
             histogram_freq: 0
             verbose: True
     optimizer:
-        lr: 0.001
+        lr: 0.0001
         name: Adam
 network:
     class: UNet2D
@@ -46,7 +46,7 @@ network:
     pooling_type: average
     skip_merge_type: concat
     upsampling: bilinear
-    dropout: 0
+    dropout: 0.2
     residual: True
     height: 256
     width: 256
