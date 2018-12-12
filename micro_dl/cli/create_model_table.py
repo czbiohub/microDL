@@ -19,7 +19,7 @@ def get_best_number(df_history):
     return df_best
 
 # model_path = r'D:\Box Sync\Processed\2018_07_03_KidneyTissueSection\SMS_2018_0703_1835_1_BG_2018_0703_1829_1'
-model_path = r'D:\Box Sync\Processed\2018_11_01_kidney_slice\SMS_2018_1101_1906_1_BG_2018_1101_1906_1\models_kidney_confocal'
+model_path = r'D:\Box Sync\Processed\2018_11_01_kidney_slice\models_kidney_confocal'
 model_summary_fname = 'model_summary.csv'
 model_dir_list = GetSubDirName(model_path)
 df_model_metric = pd.DataFrame()
