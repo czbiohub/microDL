@@ -3,6 +3,7 @@
 import argparse
 import os
 import yaml
+import time
 
 import micro_dl.input.gen_crop_masks as gen_crop_masks
 import micro_dl.input.tile_stack as tile_stack
@@ -106,6 +107,7 @@ def pre_process(pp_config):
 
     # tile stack
     if pp_config['tile_stack']:
+        start = time.time()
         if 'isotropic' in pp_config['tile']:
             isotropic = pp_config['tile']['isotropic']
         else:
@@ -135,7 +137,7 @@ def pre_process(pp_config):
             cropper_inst.tile_stack(focal_plane_idx=focal_plane_idx,
                                     pos_idx=pos_idx,
                                     hist_clip_limits=hist_clip_limits)
-
+        print('Tiling time: {}'.format(time.time() - start))
 
 if __name__ == '__main__':
     args = parse_args()
