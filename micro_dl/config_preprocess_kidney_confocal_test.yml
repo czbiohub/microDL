@@ -1,4 +1,4 @@
-base_output_dir: '/data/sguo/Processed/2018_11_01_kidney_slice/SMS_2018_1101_1906_1_BG_2018_1101_1906_1/test_2D'
+base_output_dir: '/data/sguo/Processed/2018_11_01_kidney_slice/SMS_2018_1101_1906_1_BG_2018_1101_1906_1'
 focal_plane_idx: [0, 1]
 pos_idx: [3, 4]
 verbose: 10

@@ -64,7 +64,7 @@ class ImageStackTiler:
 
         str_tile_size = '-'.join([str(val) for val in tile_size])
         str_step_size = '-'.join([str(val) for val in step_size])
-        tiled_dir_name = 'image_tile_{}_step_{}_curated'.format(str_tile_size,
+        tiled_dir_name = 'image_tile_{}_step_{}_test'.format(str_tile_size,
                                                         str_step_size)
         tiled_dir = os.path.join(base_output_dir, tiled_dir_name)
 
