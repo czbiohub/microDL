@@ -14,7 +14,7 @@ import micro_dl.train.model_inference as inference
 import micro_dl.utils.aux_utils as aux_utils
 import micro_dl.utils.image_utils as image_utils
 from micro_dl.utils.tile_utils import preprocess_imstack
-from micro_dl.utils.train_utils import select_gpu
+from micro_dl.utils.train_utils import select_gpu, get_metrics
 import micro_dl.utils.train_utils as train_utils
 
 
@@ -75,6 +75,12 @@ def parse_args():
         default=False,
         help='Saves input, target, prediction plots. Assumes you have target channel'
     )
+    parser.add_argument(
+        '--metrics',
+        type=list,
+        default=['coeff_determination'],
+        help='Metrics for predicted images'
+    )
     args = parser.parse_args()
     return args
 
@@ -101,6 +107,10 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
         config = yaml.load(f)
     # Load frames metadata and determine indices
     frames_meta = pd.read_csv(os.path.join(args.image_dir, 'frames_meta.csv'))
+    test_meta_filename = os.path.join(args.model_dir, 'test_frames_meta.csv')
+    test_frames_meta = pd.DataFrame()
+    metrics = args.metrics
+    metrics_cls = get_metrics(args.metrics)
     split_idx_name = config['dataset']['split_by_column']
     if args.test_data:
         idx_fname = os.path.join(args.model_dir, 'split_samples.json')
@@ -215,22 +225,26 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
                 else:
                     raise ValueError('Unsupported file extension')
                 # Save figures if specified
-                if args.save_figs:
-                    # Load target
-                    meta_idx = aux_utils.get_meta_idx(
-                        frames_meta,
-                        time_idx,
-                        target_channel,
-                        slice_idx,
-                        pos_idx,
-                    )
-                    file_path = os.path.join(
-                        args.image_dir,
-                        frames_meta.loc[meta_idx, "file_name"],
-                    )
-                    im_target = image_utils.read_image(file_path)
-                    im_target = image_utils.crop2base(im_target)
 
+                # Load target
+                meta_idx = aux_utils.get_meta_idx(
+                    frames_meta,
+                    time_idx,
+                    target_channel,
+                    slice_idx,
+                    pos_idx,
+                )
+                file_path = os.path.join(
+                    args.image_dir,
+                    frames_meta.loc[meta_idx, "file_name"],
+                )
+                test_frames_meta_row = frames_meta.loc[meta_idx]
+                im_target = image_utils.read_image(file_path)
+                im_target = image_utils.crop2base(im_target)
+                for metric, metric_cls in zip(metrics, metrics_cls):
+                    test_frames_meta_row[metric] = metric_cls(im_target, im_pred)
+                test_frames_meta.append(test_frames_meta_row)
+                if args.save_figs:
                     # assuming target and predicted images are always 2D for now
                     plot_utils.save_predicted_images(
                         input_batch=im_stack,
@@ -241,6 +255,8 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
                         tol=1,
                         font_size=15
                     )
+            test_frames_meta.append(test_frames_meta.agg('mean'))
+            test_frames_meta.to_csv(test_meta_filename, sep=",")
 
 
 if __name__ == '__main__':
