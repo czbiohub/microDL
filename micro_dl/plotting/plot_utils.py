@@ -10,7 +10,7 @@ from micro_dl.utils.normalize import hist_clipping
 
 def save_predicted_images(input_batch, target_batch, pred_batch,
                           output_dir, batch_idx=None, output_fname=None,
-                          tol=1, font_size=15):
+                          ext='.jpg',tol=1, font_size=15):
     """Saves a batch predicted image to output dir
 
     Format: rows of [input, target, pred]
@@ -32,7 +32,8 @@ def save_predicted_images(input_batch, target_batch, pred_batch,
     batch_size = len(input_batch)
     if batch_size == 1:
         assert output_fname is not None, 'need fname for saving image'
-        fname = os.path.join(output_dir, '{}.jpg'.format(output_fname))
+        fname = os.path.join(output_dir, '{}.{}'.format(output_fname, ext))
+        
 
     # 3D images are better saved as movies/gif
     if batch_size != 1:
@@ -68,7 +69,7 @@ def save_predicted_images(input_batch, target_batch, pred_batch,
         if batch_size != 1:
             fname = os.path.join(
                 output_dir,
-                '{}.jpg'.format(str(batch_idx * batch_size + img_idx))
+                '{}.{}'.format(str(batch_idx * batch_size + img_idx), ext)
             )
         fig.savefig(fname, dpi=300, bbox_inches='tight')
         plt.close(fig)
