@@ -69,6 +69,7 @@ def create_save_mask(input_fnames,
                 'pos_idx': pos_idx,
                 'file_name': file_name}
     file_name = file_name[-3:] + 'png'
+    # Covert mask to uint8
     cv2.imwrite(file_name, cv2.convertScaleAbs(mask, alpha=(2**8-1)))
     return cur_meta
 
