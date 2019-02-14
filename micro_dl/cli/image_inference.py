@@ -119,7 +119,7 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
     test_frames_meta_filename = os.path.join(args.model_dir, 'test_frames_meta.csv')
     
     metrics = args.metrics
-    if isinstance(metric, str):
+    if isinstance(metrics, str):
         metrics = [metircs]
     loss = trainer_config['loss']
     metrics_cls = get_metrics(args.metrics)
