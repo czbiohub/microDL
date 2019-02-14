@@ -1,7 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import os
-
+import cv2
 from micro_dl.utils import aux_utils as aux_utils
 from micro_dl.utils.image_utils import create_mask
 from micro_dl.utils import tile_utils as tile_utils
@@ -62,11 +62,14 @@ def create_save_mask(input_fnames,
             mask,
             allow_pickle=True,
             fix_imports=True)
+
     cur_meta = {'channel_idx': mask_channel_idx,
                 'slice_idx': slice_idx,
                 'time_idx': time_idx,
                 'pos_idx': pos_idx,
                 'file_name': file_name}
+    file_name = file_name[-3:] + 'png'
+    cv2.imwrite(file_name, cv2.convertScaleAbs(mask, alpha=(2**8-1)))
     return cur_meta
 
 
