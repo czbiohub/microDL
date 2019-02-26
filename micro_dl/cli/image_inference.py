@@ -296,7 +296,7 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
                         pred_batch=im_pred,
                         output_dir=fig_dir,
                         output_fname=im_name[:-4],
-                        ext='.jpg',
+                        ext='jpg',
                         tol=1,
                         font_size=15
                     )

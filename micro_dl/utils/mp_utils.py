@@ -47,10 +47,14 @@ def create_save_mask(input_fnames,
     im_stack = tile_utils.read_imstack(input_fnames,
                                        flat_field_fname)
     # Combine channel images and generate mask
-    summed_image = np.sum(np.stack(im_stack), axis=2)
-    summed_image = summed_image.astype('float32')
+    masks = []
+    for idx in range(im_stack.shape[2]):
+        im = im_stack[:, :, idx].astype('float32')
+        mask = create_mask(im, str_elem_radius)
+        masks += [mask]
+    masks = np.stack(masks, axis=2)
+    mask = np.any(masks, axis=2)
 
-    mask = create_mask(summed_image, str_elem_radius)
     # Create mask name for given slice, time and position
     file_name = aux_utils.get_im_name(time_idx=time_idx,
                                       channel_idx=mask_channel_idx,

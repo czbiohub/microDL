@@ -10,7 +10,7 @@ from micro_dl.utils.normalize import hist_clipping
 
 def save_predicted_images(input_batch, target_batch, pred_batch,
                           output_dir, batch_idx=None, output_fname=None,
-                          ext='.jpg',tol=1, font_size=15):
+                          ext='jpg',tol=1, font_size=15):
     """Saves a batch predicted image to output dir
 
     Format: rows of [input, target, pred]
