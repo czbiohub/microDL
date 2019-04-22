@@ -54,7 +54,7 @@ def save_predicted_images(input_batch,
         
         n_ip_channels = cur_input.shape[0]
         n_op_channels = cur_target.shape[0]
-        n_rows = int((n_ip_channels+2*n_op_channels+1)//2.6)
+        n_rows = int(np.squrt((n_ip_channels+2*n_op_channels+1)/2))
         n_cols = np.ceil((n_ip_channels+2*n_op_channels+1)/n_rows).astype(np.uint32)
         fig, ax = plt.subplots(n_rows, n_cols, squeeze=False)
         ax = ax.flatten()
