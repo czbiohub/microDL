@@ -58,7 +58,6 @@ def save_predicted_images(input_batch,
         n_cols = np.ceil((n_ip_channels+2*n_op_channels+1)/n_rows).astype(np.uint32)
         fig, ax = plt.subplots(n_rows, n_cols, squeeze=False)
         ax = ax.flatten()
-        print('n_ip_channels={}, n_rows={}, n_cols={}'.format(n_ip_channels, n_rows, n_cols))
         for axs in ax:
             axs.axis('off')
         fig.set_size_inches((15, 5 * n_rows))
