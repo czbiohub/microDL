@@ -119,7 +119,7 @@ def compute_metrics(args):
 
     # Get input channel(s)
     input_channels = config['dataset']['input_channels']
-    pred_channel = input_channels[0]
+    pred_channel = input_channels
 
     orientations_list = args.orientations
     if isinstance(orientations_list, str):
