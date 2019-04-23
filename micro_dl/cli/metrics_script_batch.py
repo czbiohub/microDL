@@ -1,9 +1,10 @@
-
+"""
+Run metrics_script.py in parallel using multiprocessing and sub_process
+"""
 import os
 from concurrent.futures import ProcessPoolExecutor
 import subprocess
 import shlex
-# from micro_dl.cli.metrics_script import compute_metrics
 
 def multiprocessing(func, args, n_workers = 8):
     with ProcessPoolExecutor(max_workers=n_workers) as executor:
@@ -43,7 +44,7 @@ if __name__ == '__main__':
         image_path = '/data/sguo/Processed/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_BG_2019_0215_1337_1_registered/'
         argin = ''.join(['python /microDL/micro_dl/cli/metrics_script.py --model_dir ', os.path.join(model_path, model_dir)
                             , ' --test_data ', '--image_dir ', image_path, ' --metrics ', 'ssim corr r2',
-                         ' --orientations ', 'xy xz yz xyz'])
+                         ' --orientations ', 'xy xz xyz'])
         argin = shlex.split(argin)
         argin_list.append(argin)
 
