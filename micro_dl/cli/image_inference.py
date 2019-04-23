@@ -179,11 +179,6 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
     depth = 1
     if 'depth' in network_config:
         depth = network_config['depth']
-        if depth > 1:
-            metadata_ids['slice_idx'] = aux_utils.adjust_slice_margins(
-                slice_ids=metadata_ids['slice_idx'],
-                depth=depth,
-            )
     # Get input channel
     # TODO: Add multi channel support once such models are tested
     input_channel = dataset_config['input_channels']
