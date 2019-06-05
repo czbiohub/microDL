@@ -45,6 +45,21 @@ def parse_args():
         default=None,
         help='File name of weights in model dir (.hdf5). If None grab newest.',
     )
+
+    parser.add_argument(
+        '--save_to_image_dir',
+        dest='save_to_image_dir',
+        action='store_true',
+        help='write predicted images to image directory',
+    )
+
+    parser.add_argument(
+        '--save_to_model_dir',
+        dest='save_to_image_dir',
+        action='store_false',
+        help='write predicted images to model directory',
+    )
+    parser.set_defaults(save_to_model_dir=False)
     parser.add_argument(
         '--test_data',
         dest='test_data',
@@ -112,6 +127,14 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
         )
     # Load config file
     config_name = os.path.join(args.model_dir, 'config.yml')
+    # Create image subdirectory to write predicted images
+    if args.save_to_image_dir:
+        pred_dir = os.path.join(args.image_dir, os.path.basename(args.model_dir))
+        test_frames_meta_filename = os.path.join(args.image_dir, os.path.basename(args.model_dir), 'test_frames_meta.csv')
+    else:
+        pred_dir = os.path.join(args.model_dir, 'predictions')
+        test_frames_meta_filename = os.path.join(args.model_dir, 'test_frames_meta.csv')
+
     with open(config_name, 'r') as f:
         config = yaml.load(f)
     # Load frames metadata and determine indices
@@ -123,7 +146,7 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
     test_tile_meta = pd.read_csv(os.path.join(args.model_dir, 'test_metadata.csv'),
                               index_col=0)
     # TODO: generate test_frames_meta.csv together with tile csv during training
-    test_frames_meta_filename = os.path.join(args.model_dir, 'test_frames_meta.csv')
+
     metrics = trainer_config['metrics']
     if args.metrics:
         metrics = args.metrics
@@ -166,8 +189,6 @@ def run_prediction(args, gpu_ids, gpu_mem_frac):
         model_fname = fnames[-1]
     weights_path = os.path.join(args.model_dir, model_fname)
 
-    # Create image subdirectory to write predicted images
-    pred_dir = os.path.join(args.model_dir, 'predictions')
     os.makedirs(pred_dir, exist_ok=True)
     target_channel = dataset_config['target_channels'][0]
     # If saving figures, create another subdirectory to predictions
