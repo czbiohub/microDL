@@ -119,8 +119,8 @@ def compute_metrics(args):
 
     # Get input channel(s)
     input_channels = config['dataset']['input_channels']
-    if len(input_channels) == 1 and isinstance(input_channels, list):
-        input_channels = input_channels[0]
+    if isinstance(input_channels, int):
+        input_channels = [input_channels]
     pred_channel = input_channels
 
     orientations_list = args.orientations
