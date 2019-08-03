@@ -57,7 +57,7 @@ def dssim_loss(y_true, y_pred):
     :param tensor y_pred: Predicted labels, potentially non-binary
     :return float: 0.8 * DSSIM + 0.2 * L1
     """
-    mae = mean_absolute_error(y_true, y_pred)
+    mae = mae_loss(y_true, y_pred)
     return 0.8 * (1.0 - metrics.ssim(y_true, y_pred) / 2.0) + 0.2 * mae
 
 
