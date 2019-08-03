@@ -45,17 +45,7 @@ def create_activation_layer(activation_dict):
     alpha_initializer, alpha_regularizer etc from advanced activations
     :return keras.layer: instance of activation layer
     """
-
-    if hasattr(tf.keras.layers.advanced_activations, activation_dict['type']):
-        activation_layer = getattr(tf.keras.layers.advanced_activations,
-                                   activation_dict['type'])
-        if 'params' in activation_dict:
-            activation_layer_instance = activation_layer(
-                activation_dict['params']
-            )
-        else:
-            activation_layer_instance = activation_layer()
-    elif hasattr(tf.keras.layers.activations, activation_dict['type']):
+    if hasattr(tf.keras.layers.activations, activation_dict['type']):
         activation_layer_instance = tf.keras.layers.Activation(
             activation_dict['type'],
         )
