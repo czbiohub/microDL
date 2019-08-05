@@ -42,7 +42,7 @@ def conv_block(layer, network_config, block_idx):
                 )(layer)
             else:
                 activation_layer_instance = create_activation_layer(
-                    network_config['activation']
+                    network_config['activation'],
                 )
                 layer = activation_layer_instance(layer)
 

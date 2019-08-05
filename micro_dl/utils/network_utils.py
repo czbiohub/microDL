@@ -38,20 +38,27 @@ def get_keras_layer(type, num_dims):
 
 
 def create_activation_layer(activation_dict):
-    """Get the keras activation / advanced activation
+    """Get the keras activation
 
     :param dict activation_dict: Nested dict with keys: type -> activation type
     and params -> dict activation related params such as alpha, theta,
     alpha_initializer, alpha_regularizer etc from advanced activations
     :return keras.layer: instance of activation layer
     """
-    if hasattr(tf.keras.layers, activation_dict['type']):
+    activation_type = activation_dict['type']
+    # Fix because of name change in tf.keras.layers between versions
+    if activation_type == 'relu':
+        activation_type = 'ReLU'
+    print(activation_type)
+    try:
+        print('in hasattr ReLU')
         activation_layer_instance = tf.keras.layers.Activation(
-            activation_dict['type'],
+            getattr(tf.keras.layers, activation_type),
         )
-    else:
+        print('worked', activation_layer_instance)
+    except ValueError:
         raise ValueError('%s is not a valid activation type'
-                         % activation_dict['type'])
+                         % activation_type)
     return activation_layer_instance
 
 
