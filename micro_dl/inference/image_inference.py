@@ -227,8 +227,8 @@ class ImagePredictor:
                 'Inference on reduced num of slices gives sub optimal results'
             num_slices = vol_inf_dict['num_slices']
 
-            assert self.config['network']['class'] == 'UNet3D', \
-                'currently stitching predictions available for 3D models only'
+            # assert self.config['network']['class'] == 'UNet3D', \
+            #     'currently stitching predictions available for 3D models only'
             network_depth = len(
                 self.config['network']['num_filters_per_block']
             )
