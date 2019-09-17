@@ -16,28 +16,22 @@ def sub_process(argin):
     print(p.stdout)
 
 if __name__ == '__main__':
-    # model_path = '/flexo/ComputationalMicroscopy/Projects/virtualstaining/kidneyslice/' \
-    #              '2019_02_15_kidney_slice/models_kidney_20190215'
-    # model_dirs = ['2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret_568_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ori_x_568_augmented_tf_20',
-    #               '2D_tile256_step128_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ori_y_568_augmented_tf_20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_trans_568_augmented_tf_20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_scat_568_augmented_tf_20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret+trans_568_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret+ori_x+ori_y_568_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret+ori_x+ori_y+trans_568_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret+ori_x+ori_y+trans+scat_568_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret_405_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ori_x_405_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ori_y_405_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_trans_405_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_scat_405_augmented_tf_20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret+trans_405_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret+ori_x+ori_y_405_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e-5_6e-3_fltr16_256_do20_MSE_chan_ret+ori_x+ori_y+trans_405_augmented_tf20',
-    #               '2D_tile256_step128_registered_masked_clr_5e - 5_6e-3_fltr16_256_do20_MSE_chan_ret + ori_x + ori_y + trans + scat_405_augmented_tf20'
-    #               ]
-    # image_path = '/data/sguo/Processed/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_BG_2019_0215_1337_1_registered/'
+    model_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
+                 '2019_02_15_kidney_slice/models_kidney_20190215'
+    model_dirs = [
+        # 'Stack_fltr16_256_do20_otus_MAE_1chan_ret_nuclei_pix_iqr_norm',
+        # 'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+        # 'Stack_fltr16_256_do20_otus_MAE_1chan_bf_actin_pix_iqr_norm',
+        'Stack_fltr16_256_do20_otus_MAE_1chan_bf_nuclei_pix_iqr_norm',
+        'Stack_fltr16_256_do20_otus_MAE_1chan_phase_nuclei_pix_iqr_norm',
+        # 'Stack_fltr16_256_do20_otus_MAE_1chan_phase_actin_pix_iqr_norm',
+        'Stack_fltr16_256_do20_otus_MAE_4chan_phase_nuclei_pix_iqr_norm',
+        'Stack_fltr16_256_do20_otus_MAE_4chan_bf_nuclei_pix_iqr_norm',
+        # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_actin_pix_iqr_norm',
+        # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
+        # '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm'
+    ]
+    image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
 
     # model_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
     #              '2019_02_15_kidney_slice/models_kidney_20190215'
@@ -56,15 +50,15 @@ if __name__ == '__main__':
     # image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
     #              '2019_02_15_kidney_slice/SMS_2018_1227_1433_1_BG_2019_0215_1337_1_registered/'
 
-    model_path = '/CompMicro/Projects/brainarchitecture/train_pool_H9_H78_GW20_GW24/models'
-
-    model_dirs = ['pool_H9_H78_GW20_GW24_2D_MAE_phase_myelin_regis_pix_iqr_norm',
-                  'pool_H9_H78_GW20_GW24_Stack_MAE_3chan_ret+ori_myelin_regis_pix_iqr_norm',
-                  'pool_H9_H78_GW20_GW24_Stack_MAE_4chan_bf_myelin_regis_pix_iqr_norm',
-                  'pool_H9_H78_GW20_GW24_2D_MAE_4chan_bf_myelin_regis_pix_iqr_norm',
-                  'pool_H9_H78_GW20_GW24_2D_MAE_4chan_phase_myelin_regis_pix_iqr_norm',
-                  ]
-    image_path = '/CompMicro/Projects/brainarchitecture/train_pool_H9_H78_GW20_GW24'
+    # model_path = '/CompMicro/Projects/brainarchitecture/train_pool_H9_H78_GW20_GW24/models'
+    #
+    # model_dirs = ['pool_H9_H78_GW20_GW24_2D_MAE_phase_myelin_regis_pix_iqr_norm',
+    #               'pool_H9_H78_GW20_GW24_Stack_MAE_3chan_ret+ori_myelin_regis_pix_iqr_norm',
+    #               'pool_H9_H78_GW20_GW24_Stack_MAE_4chan_bf_myelin_regis_pix_iqr_norm',
+    #               'pool_H9_H78_GW20_GW24_2D_MAE_4chan_bf_myelin_regis_pix_iqr_norm',
+    #               'pool_H9_H78_GW20_GW24_2D_MAE_4chan_phase_myelin_regis_pix_iqr_norm',
+    #               ]
+    # image_path = '/CompMicro/Projects/brainarchitecture/train_pool_H9_H78_GW20_GW24'
     argin_list = []
     for model_dir in model_dirs:
         argin = ''.join(['python cli/metrics_script.py --model_dir ',
@@ -73,8 +67,8 @@ if __name__ == '__main__':
                          '--image_dir ',
                          image_path,
                          ' --metrics ', 'ssim corr r2',
-                         ' --orientations ', 'xy'])
+                         ' --orientations ', 'xy xz xyz'])
         argin = shlex.split(argin)
         argin_list.append(argin)
 
-    multiprocessing(sub_process, argin_list, n_workers=5)
+    multiprocessing(sub_process, argin_list, n_workers=11)

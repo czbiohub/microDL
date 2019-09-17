@@ -16,7 +16,7 @@ def save_predicted_images(input_batch,
                           output_dir,
                           batch_idx=None,
                           output_fname=None,
-                          ext='.jpg',
+                          ext='jpg',
                           clip_limits=1,
                           font_size=15):
     """
@@ -42,8 +42,8 @@ def save_predicted_images(input_batch,
         assert output_fname is not None, 'need fname for saving image'
         fname = os.path.join(output_dir, '{}.{}'.format(output_fname, ext))
 
-
     # 3D images are better saved as movies/gif
+    # assume only 1 target and prediction channel
     if batch_size != 1:
         assert len(input_batch.shape) == 4, 'saves 2D images only'
 
@@ -51,40 +51,61 @@ def save_predicted_images(input_batch,
         cur_input = input_batch[img_idx]
         cur_target = target_batch[img_idx]
         cur_prediction = pred_batch[img_idx]
-        n_channels = cur_input.shape[0]
-        fig, ax = plt.subplots(n_channels, 3)
-        fig.set_size_inches((15, 5 * n_channels))
+
+        n_ip_channels = cur_input.shape[0]
+        n_op_channels = cur_target.shape[0]
+        n_subplot = n_ip_channels + 2 * n_op_channels + 1
+        # make aspect ratio = 1:1.6
+        n_rows = np.round(np.sqrt(n_subplot / 1.6)).astype(np.uint32)
+        n_cols = np.ceil(n_subplot / n_rows).astype(np.uint32)
+        fig, ax = plt.subplots(n_rows, n_cols, squeeze=False)
+        ax = ax.flatten()
+        for axs in ax:
+            axs.axis('off')
+        fig.set_size_inches((15, 5 * n_rows))
         axis_count = 0
-        for channel_idx in range(n_channels):
+        for channel_idx in range(n_ip_channels):
             cur_im = hist_clipping(
                 cur_input[channel_idx],
                 clip_limits,
                 100 - clip_limits,
             )
-            ax[axis_count].imshow(cur_im,  cmap='gray')
+            ax[axis_count].imshow(cur_im, cmap='gray')
             ax[axis_count].axis('off')
-            if axis_count == 0:
-                ax[axis_count].set_title('Input', fontsize=font_size)
+            ax[axis_count].set_title('Input', fontsize=font_size)
             axis_count += 1
-            cur_im = hist_clipping(
+        for channel_idx in range(n_op_channels):
+            cur_target_chan = hist_clipping(
                 cur_target[channel_idx],
                 clip_limits,
                 100 - clip_limits,
             )
-            ax[axis_count].imshow(cur_im, cmap='gray')
+            ax[axis_count].imshow(cur_target_chan, cmap='gray')
             ax[axis_count].axis('off')
-            if axis_count == 1:
-                ax[axis_count].set_title('Target', fontsize=font_size)
+            ax[axis_count].set_title('Target', fontsize=font_size)
             axis_count += 1
-            cur_im = hist_clipping(
+            cur_pred_chan = hist_clipping(
                 cur_prediction[channel_idx],
                 clip_limits,
                 100 - clip_limits,
             )
-            ax[axis_count].imshow(cur_im, cmap='gray')
+            ax[axis_count].imshow(cur_pred_chan, cmap='gray')
             ax[axis_count].axis('off')
-            if axis_count == 2:
-                ax[axis_count].set_title('Prediction', fontsize=font_size)
+
+            ax[axis_count].set_title('Prediction', fontsize=font_size)
+            axis_count += 1
+
+            cur_target_8bit = cv2.convertScaleAbs(cur_target_chan - np.min(cur_target_chan),
+                                                  alpha=255/(np.max(cur_target_chan)
+                                                        - np.min(cur_target_chan)))
+            cur_prediction_8bit = cv2.convertScaleAbs(cur_pred_chan - np.min(cur_pred_chan),
+                                                      alpha=255/(np.max(cur_pred_chan)
+                                                            - np.min(cur_pred_chan)))
+            cur_target_pred = np.stack([cur_target_8bit, cur_prediction_8bit,
+                                        cur_target_8bit], axis=2)
+
+            ax[axis_count].imshow(cur_target_pred)
+            ax[axis_count].set_title('Overlay', fontsize=font_size)
             axis_count += 1
         if batch_size != 1:
             fname = os.path.join(
@@ -98,10 +119,12 @@ def save_predicted_images(input_batch,
 def save_center_slices(image_dir,
                        pos_idx,
                        save_path,
+                       plot_range=None,
                        mean_std=None,
                        clip_limits=1,
                        margin=20,
                        z_scale=5,
+                       z_range=None,
                        channel_str=None,
                        font_size=15,
                        color_map='gray',
@@ -122,6 +145,7 @@ def save_center_slices(image_dir,
     :param int margin: Number of pixel margin between the three center slices
         xy and xz, yz
     :param int z_scale: How much to upsample in z (to be able to see xz and yz)
+    :param list z_range: Min and max z slice from given stack
     :param str channel_str: If there's more than one channel in image_dir
         (e.g. input image dir as opposed to predictions) use this str to select
         which channel to build z-stack from. E.g. '3', 'brightfield'.
@@ -136,6 +160,13 @@ def save_center_slices(image_dir,
     if channel_str is not None:
         slice_names = [s for s in slice_names if channel_str in s]
 
+    # Remove a given nbr of slices from front and back of names
+    if z_range is not None:
+        assert len(z_range) == 2, 'Z-range must consist of two values'
+        slice_names = slice_names[z_range[0]:z_range[1]]
+    assert len(slice_names) > 0, \
+        "Couldn't find images in {} with given search criteria".format(image_dir)
+
     im_stack = []
     for im_z in slice_names:
         im_stack.append(cv2.imread(im_z, cv2.IMREAD_ANYDEPTH))
@@ -149,36 +180,41 @@ def save_center_slices(image_dir,
         im_norm[im_norm < 0] = 0.
         # Convert to uint16
         im_norm = im_norm.astype(np.uint16)
-
+    if plot_range is not None:
+        im_norm = im_norm[plot_range[0]:plot_range[0] + plot_range[2],
+                          plot_range[1]:plot_range[1] + plot_range[3], :]
     # Add xy center slice to plot image (canvas)
     center_slice = hist_clipping(
         im_norm[..., int(len(slice_names) // 2)],
         clip_limits, 100 - clip_limits,
     )
-    im_shape = im_stack.shape
-    canvas = center_slice.max() * np.ones(
-        (im_shape[0] + im_shape[2] * z_scale + margin,
-         im_shape[1] + im_shape[2] * z_scale + margin),
-        dtype=np.uint16,
-    )
-    canvas[0:im_shape[0], 0:im_shape[1]] = center_slice
+    im_shape = im_norm.shape
+
     # add yz center slice
     yz_slice = hist_clipping(
         np.squeeze(im_norm[:, int(im_shape[1] // 2), :]),
         clip_limits, 100 - clip_limits,
     )
     yz_shape = yz_slice.shape
-    yz_slice = cv2.resize(yz_slice, (yz_shape[1] * int(z_scale, yz_shape[0])))
-    canvas[0:yz_shape[0], im_shape[1] + margin:] = yz_slice
+    yz_slice = cv2.resize(yz_slice, (yz_shape[1] * int(z_scale), yz_shape[0]))
+
     # add xy center slice
     xy_slice = hist_clipping(
         np.squeeze(im_norm[int(im_shape[1] // 2), :, :]),
         clip_limits, 100 - clip_limits,
     )
     xy_shape = xy_slice.shape
-    xy_slice = cv2.resize(xy_slice, (xy_shape[1] * int(z_scale, xy_shape[0])))
+    xy_slice = cv2.resize(xy_slice, (xy_shape[1] * int(z_scale), xy_shape[0]))
     # Need to rotate to fit this slice on the bottom of canvas
     xy_slice = np.rot90(xy_slice)
+
+    canvas = max(center_slice.max(), xy_slice.max(), yz_slice.max()) * np.ones(
+        (im_shape[0] + im_shape[2] * z_scale + margin,
+         im_shape[1] + im_shape[2] * z_scale + margin),
+        dtype=np.uint16,
+    )
+    canvas[0:im_shape[0], 0:im_shape[1]] = center_slice
+    canvas[0:yz_shape[0], im_shape[1] + margin:] = yz_slice
     canvas[im_shape[0] + margin:, 0:xy_slice.shape[1]] = xy_slice
 
     plt.imshow(canvas, cmap=color_map)
@@ -211,9 +247,19 @@ def save_mask_overlay(input_image, mask, op_fname, alpha=0.7):
     im_rgb = input_image / input_image.max() * 255
     im_rgb = im_rgb.astype(np.uint8)
     im_rgb = cv2.cvtColor(im_rgb, cv2.COLOR_GRAY2RGB)
-    _, contours, _ = cv2.findContours(mask.astype(np.uint8),
-                                      cv2.RETR_TREE,
-                                      cv2.CHAIN_APPROX_SIMPLE)
+    try:
+        _, contours, _ = cv2.findContours(
+            mask.astype(np.uint8),
+            cv2.RETR_TREE,
+            cv2.CHAIN_APPROX_SIMPLE,
+        )
+    except ValueError:
+        # Older versions of opencv expects two return values
+        contours, _ = cv2.findContours(
+            mask.astype(np.uint8),
+            cv2.RETR_TREE,
+            cv2.CHAIN_APPROX_SIMPLE,
+        )
     # Draw contours in green with linewidth 2
     im_rgb = cv2.drawContours(im_rgb, contours, -1, (0, 255, 0), 2)
     ax[2].imshow(im_rgb)
