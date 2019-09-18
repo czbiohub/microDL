@@ -167,10 +167,15 @@ def save_center_slices(image_dir,
     assert len(slice_names) > 0, \
         "Couldn't find images in {} with given search criteria".format(image_dir)
 
-    im_stack = []
-    for im_z in slice_names:
-        im_stack.append(cv2.imread(im_z, cv2.IMREAD_ANYDEPTH))
-    im_stack = np.stack(im_stack, axis=-1)
+    # 3d inference output is single .npy per volume
+    if len(slice_names) == 1 and slice_names[0][-3:] == 'npy':
+        im_stack = np.load(slice_names[0])
+        im_stack = np.transpose(im_stack, (1, 2, 0))
+    else:
+        im_stack = []
+        for im_z in slice_names:
+            im_stack.append(cv2.imread(im_z, cv2.IMREAD_ANYDEPTH))
+        im_stack = np.stack(im_stack, axis=-1)
     # If mean and std tuple exist, scale, otherwise leave as is
     im_norm = im_stack
     if isinstance(mean_std, tuple):
@@ -184,11 +189,11 @@ def save_center_slices(image_dir,
         im_norm = im_norm[plot_range[0]:plot_range[0] + plot_range[2],
                           plot_range[1]:plot_range[1] + plot_range[3], :]
     # Add xy center slice to plot image (canvas)
+    im_shape = im_norm.shape
     center_slice = hist_clipping(
-        im_norm[..., int(len(slice_names) // 2)],
+        im_norm[..., int(im_shape[2] // 2)],
         clip_limits, 100 - clip_limits,
     )
-    im_shape = im_norm.shape
 
     # add yz center slice
     yz_slice = hist_clipping(
@@ -196,7 +201,7 @@ def save_center_slices(image_dir,
         clip_limits, 100 - clip_limits,
     )
     yz_shape = yz_slice.shape
-    yz_slice = cv2.resize(yz_slice, (yz_shape[1] * int(z_scale), yz_shape[0]))
+    yz_slice = cv2.resize(yz_slice, (int(yz_shape[1] * z_scale), yz_shape[0]))
 
     # add xy center slice
     xy_slice = hist_clipping(
@@ -204,7 +209,7 @@ def save_center_slices(image_dir,
         clip_limits, 100 - clip_limits,
     )
     xy_shape = xy_slice.shape
-    xy_slice = cv2.resize(xy_slice, (xy_shape[1] * int(z_scale), xy_shape[0]))
+    xy_slice = cv2.resize(xy_slice, (int(xy_shape[1] * z_scale), xy_shape[0]))
     # Need to rotate to fit this slice on the bottom of canvas
     xy_slice = np.rot90(xy_slice)
 
