@@ -6,6 +6,7 @@ import seaborn as sns
 
 def singe_target_violins(dir_dict,
                          save_path,
+                         metric='ssim',
                          orientations=['xy', 'xz'],
                          min_corr=0.5,
                          plot_color=['#008000', '#3CB371'],
@@ -60,10 +61,10 @@ def singe_target_violins(dir_dict,
     all_metrics = pd.concat([all_metrics[0], all_metrics[1]])
     # Plot violins
     fig = plt.figure()
-    fig.set_size_inches((9.2, 3))
+    fig.set_size_inches((1 * len(dir_dict), 3))
     ax = sns.violinplot(
         x='channels',
-        y='corr',
+        y=metric,
         hue='orientation',
         data=all_metrics,
         scale='area',
