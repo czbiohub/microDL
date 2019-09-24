@@ -31,9 +31,9 @@ if __name__ == '__main__':
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
         # '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm'
         'kidney_3d_128_128_96_cyclr_2',
-        'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_actin_pix_iqr_norm',
-        'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_nuclei_pix_iqr_norm',
-        'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+        # 'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_actin_pix_iqr_norm',
+        # 'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_nuclei_pix_iqr_norm',
+        # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_nuclei_pix_iqr_norm_v2',
         # 'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
     ]
@@ -73,7 +73,8 @@ if __name__ == '__main__':
                          '--image_dir ',
                          image_path,
                          ' --metrics ', 'ssim corr r2',
-                         ' --orientations ', 'xy xz xyz'])
+                         ' --orientations ', 'xy xz xyz',
+                         ' --ext ', '.tif'])
         argin = shlex.split(argin)
         argin_list.append(argin)
 
