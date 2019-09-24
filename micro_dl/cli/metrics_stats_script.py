@@ -55,12 +55,18 @@ def metrics_stats(model_path,
 if __name__ == '__main__':
     model_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
                  '2019_02_15_kidney_slice/models_kidney_20190215'
-    actin_model_dirs = ['Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
-                        'Stack_fltr16_256_do20_otus_MAE_1chan_bf_actin_pix_iqr_norm',
-                        'Stack_fltr16_256_do20_otus_MAE_1chan_phase_actin_pix_iqr_norm',
-                        'Stack_fltr16_256_do20_otus_MAE_4chan_phase_actin_pix_iqr_norm',
-                        'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
+    actin_model_dirs = ['2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+                        'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+                        'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+                        'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+                        'kidney_3d_128_128_96_cyclr_2',
                         ]
+    # actin_model_dirs = ['Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+    #                     'Stack_fltr16_256_do20_otus_MAE_1chan_bf_actin_pix_iqr_norm',
+    #                     'Stack_fltr16_256_do20_otus_MAE_1chan_phase_actin_pix_iqr_norm',
+    #                     'Stack_fltr16_256_do20_otus_MAE_4chan_phase_actin_pix_iqr_norm',
+    #                     'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
+    #                     ]
     nuclei_model_dirs = [
                    'Stack_fltr16_256_do20_otus_MAE_1chan_ret_nuclei_pix_iqr_norm',
                     'Stack_fltr16_256_do20_otus_MAE_1chan_bf_nuclei_pix_iqr_norm',
@@ -69,31 +75,35 @@ if __name__ == '__main__':
                     'Stack_fltr16_256_do20_otus_MAE_4chan_bf_nuclei_pix_iqr_norm',
                   ]
 
-    input_chan_names = ['retardance',
-                             # 'orientation x',
-                             # 'orientation y',
-                             'bright-field',
-                             'phase',
-                             # 'retardance + bright-field',
-                             # 'retardance + orientation x + orientation y',
-                             '4_channel_phase',
-                             '4_channel_bright-field',
-                             ]
-    translation_models = ['2.5D']+[''] * (len(input_chan_names)-1)
+    # input_chan_names = ['retardance',
+    #                          # 'orientation x',
+    #                          # 'orientation y',
+    #                          'bright-field',
+    #                          'phase',
+    #                          # 'retardance + bright-field',
+    #                          # 'retardance + orientation x + orientation y',
+    #                          '4_channel_phase',
+    #                          '4_channel_bright-field',
+    #                          ]
+    input_chan_names = ['retardance'] * len(actin_model_dirs)
+
+    # translation_models = ['2.5D']+[''] * (len(input_chan_names)-1)
+    translation_models = ['2D', '2.5D, z=3', '2.5D, z=5', '2.5D, z=7', '3D']
 
 
-    input_chan_tex_names = ['$\gamma$',
-                            '$\psi$',
-                            'BF',
-                            '$\psi$, $\gamma$, $\phi_x$, $\phi_y$',
-                            'BF, $\gamma$, $\phi_x$, $\phi_y$',
-                            ]
+    # input_chan_tex_names = ['$\gamma$',
+    #                         '$\psi$',
+    #                         'BF',
+    #                         '$\psi$, $\gamma$, $\phi_x$, $\phi_y$',
+    #                         'BF, $\gamma$, $\phi_x$, $\phi_y$',
+    #                         ]
+    input_chan_tex_names = [r'$\rho$'] * len(actin_model_dirs)
 
     target_chan_names = ['nuclei', 'F-actin']
     orientations = ['xy', 'xz', 'xyz']
     metrics = ['corr', 'ssim']
 
-    output_path = '/CompMicro/Projects/virtualstaining/datastage_figures/kidneytissuep007/multichannel'
+    output_path = '/CompMicro/Projects/virtualstaining/datastage_figures/kidney_p122'
 
     metrics_stats(model_path,
                   actin_model_dirs,
@@ -103,13 +113,13 @@ if __name__ == '__main__':
                   'F-actin',
                   metrics)
 
-    metrics_stats(model_path,
-                  nuclei_model_dirs,
-                  input_chan_names,
-                  input_chan_tex_names,
-                  translation_models,
-                  'nuclei',
-                  metrics)
+    # metrics_stats(model_path,
+    #               nuclei_model_dirs,
+    #               input_chan_names,
+    #               input_chan_tex_names,
+    #               translation_models,
+    #               'nuclei',
+    #               metrics)
 
 
     # model_path = '/CompMicro/Projects/brainarchitecture/train_pool_H9_H78_GW20_GW24/models'
