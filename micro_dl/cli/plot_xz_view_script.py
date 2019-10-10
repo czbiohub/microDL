@@ -4,7 +4,7 @@ import micro_dl.plotting.plot_utils as plot_utils
 model_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
              '2019_02_15_kidney_slice/models_kidney_20190215'
 model_dirs = [
-        # 'kidney_3d_128_128_96_cyclr_2',
+        'kidney_3d_128_128_96_cyclr_2',
         # 'Stack_fltr16_256_do20_otus_MAE_1chan_ret_nuclei_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_1chan_bf_actin_pix_iqr_norm',
@@ -18,13 +18,13 @@ model_dirs = [
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
         # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
         # 'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
-        'target_actin',
-        'target_nuclei',
-        'input_retardance',
+        # 'target_actin',
+        # 'target_nuclei',
+        # 'input_retardance',
         # 'input_ret_ori',
-        'input_phase',
-        'input_BF',
-        '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm'
+        # 'input_phase',
+        # 'input_BF',
+        # '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm'
 
             # '2D_fltr16_256_do20_otsu_MAE_ret_actin_augmented_tf_20',
             # '2D_fltr16_256_do20_otsu_MAE_ret_actin_augmented_tf_20_dataset_norm',
@@ -68,7 +68,8 @@ for model_dir in model_dirs:
                                    mean_std=None,
                                    clip_limits=tol,
                                    margin=20,
-                                   z_scale=2.42,
+                                   # z_scale=2.42,
+                                    z_scale=1,
                                    channel_str=None,
                                    z_view=['xz','yz'],
                                    font_size=15,

@@ -21,7 +21,7 @@ if __name__ == '__main__':
                  '2019_02_15_kidney_slice/models_kidney_20190215'
     model_dirs = [
         # 'Stack_fltr16_256_do20_otus_MAE_1chan_ret_nuclei_pix_iqr_norm',
-        # 'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+        'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_1chan_bf_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_1chan_bf_nuclei_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_1chan_phase_nuclei_pix_iqr_norm',
@@ -30,12 +30,12 @@ if __name__ == '__main__':
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_nuclei_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
-        # '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm'
+        # '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v2',
         # 'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_nuclei_pix_iqr_norm',
-        # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
-        'Stack_fltr16_256_do20_otus_MAE_4chan_phase_nuclei_pix_iqr_norm_v2',
-        'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+        # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v2',
+        # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_nuclei_pix_iqr_norm_v2',
+        # 'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v2',
 
     ]
     image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
