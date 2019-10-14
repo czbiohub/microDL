@@ -55,10 +55,10 @@ def metrics_stats(model_path,
 if __name__ == '__main__':
     model_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
                  '2019_02_15_kidney_slice/models_kidney_20190215'
-    actin_model_dirs = ['2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v2',
-                        'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v2',
+    actin_model_dirs = ['2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+                        'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
                         'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
-                        'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v2',
+                        'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
                         'kidney_3d_128_128_96_cyclr_2',
                         ]
     # actin_model_dirs = ['Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
