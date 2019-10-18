@@ -1,8 +1,8 @@
 import os
-
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import pandas as pd
-
+import time
 from micro_dl.utils import normalize as normalize, aux_utils as aux_utils
 from micro_dl.utils.image_utils import read_image, apply_flat_field_correction
 
@@ -12,8 +12,8 @@ def read_imstack(input_fnames,
                  hist_clip_limits=None,
                  is_mask=False,
                  normalize_im=True,
-                 zscore_mean=0,
-                 zscore_std=1):
+                 zscore_mean=None,
+                 zscore_std=None):
     """
     Read the images in the fnames and assembles a stack.
     If images are masks, make sure they're boolean by setting >0 to True
@@ -75,7 +75,6 @@ def preprocess_imstack(frames_metadata,
                        flat_field_im=None,
                        hist_clip_limits=None,
                        normalize_im='stack',
-                       min_fraction=None,
                        ):
     """
     Preprocess image given by indices: flatfield correction, histogram
@@ -99,7 +98,6 @@ def preprocess_imstack(frames_metadata,
         slice_ids=-1,
         uniform_structure=True
     )
-    slice_ids = metadata_ids['slice_ids']
     margin = 0 if depth == 1 else depth // 2
     im_stack = []
     for z in range(slice_idx - margin, slice_idx + margin + 1):
@@ -120,6 +118,19 @@ def preprocess_imstack(frames_metadata,
                 im,
                 flat_field_image=flat_field_im,
             )
+
+        zscore_median = None
+        zscore_iqr = None
+        if normalize_im in ['dataset', 'volume', 'slice']:
+            zscore_median = frames_metadata.loc[meta_idx, 'zscore_median']
+            zscore_iqr = frames_metadata.loc[meta_idx, 'zscore_iqr']
+
+        if normalize_im is not None:
+            im = normalize.zscore(
+                im,
+                mean=zscore_median,
+                std=zscore_iqr
+            )
         im_stack.append(im)
 
     if len(im.shape) == 3:
@@ -137,22 +148,6 @@ def preprocess_imstack(frames_metadata,
             hist_clip_limits[1],
         )
 
-    zscore_mean, zscore_std = aux_utils.get_zscore_params(
-        time_idx=time_idx,
-        channel_idx=channel_idx,
-        slice_idx=slice_idx,
-        pos_idx=pos_idx,
-        depth=depth,
-        slice_ids=slice_ids,
-        normalize_im=normalize_im,
-        frames_metadata=frames_metadata,
-        min_fraction=min_fraction
-    )
-
-    im_stack = normalize.zscore(
-        im_stack, mean=zscore_mean,
-        std=zscore_std
-    )
     return im_stack
 
 
@@ -211,10 +206,15 @@ def tile_image(input_image,
                 use_tile = False
         return use_tile
 
-    def get_tile_meta(cropped_img, img_id, save_dict, row, col, sl_start=None):
+    def get_tile_meta(img_id, save_dict, row, col, sl_start=None):
         cur_metadata = None
         if save_dict is not None:
-            file_name = write_tile(cropped_img, save_dict, img_id)
+            file_name = aux_utils.get_im_name(time_idx=save_dict['time_idx'],
+                                              channel_idx=save_dict['channel_idx'],
+                                              slice_idx=save_dict['slice_idx'],
+                                              pos_idx=save_dict['pos_idx'],
+                                              int2str_len=save_dict['int2str_len'],
+                                              extra_field=img_id)
             cur_metadata = {'channel_idx': save_dict['channel_idx'],
                             'slice_idx': save_dict['slice_idx'],
                             'time_idx': save_dict['time_idx'],
@@ -253,9 +253,11 @@ def tile_image(input_image,
     if n_dim == 3:
         n_slices = im_shape[2]
 
-    cropped_image_list = []
+    tiles_list = []
+    file_names_list = []
     cropping_index = []
     tiled_metadata = []
+    # time_start = time.time()
     for row in range(0, n_rows - tile_size[0] + step_size[0], step_size[0]):
         if row + tile_size[0] > n_rows:
             row = check_in_range(row, n_rows, tile_size[0])
@@ -284,28 +286,34 @@ def tile_image(input_image,
                                                   col: col + tile_size[1],
                                                   sl: sl + tile_size[2]]
                         if use_tile(cropped_img, min_fraction):
-                            cropped_image_list.append([cur_img_id, cropped_img])
+                            tiles_list.append(cropped_img)
                             cropping_index.append(cur_index)
-                            cur_tile_meta = get_tile_meta(cropped_img,
-                                                          cur_img_id,
+                            cur_tile_meta = get_tile_meta(cur_img_id,
                                                           save_dict,
                                                           row, col, sl)
                             tiled_metadata.append(cur_tile_meta)
                 else:
                     img_id = '{}_sl{}-{}'.format(img_id, 0, im_depth)
             if use_tile(cropped_img, min_fraction) and not tile_3d:
-                cropped_image_list.append([img_id, cropped_img])
+
+                tiles_list.append(cropped_img)
                 cropping_index.append(cur_index)
-                cur_tile_meta = get_tile_meta(cropped_img,
-                                              img_id,
+                cur_tile_meta = get_tile_meta(img_id,
                                               save_dict,
                                               row, col)
+                file_name = cur_tile_meta['file_name']
                 tiled_metadata.append(cur_tile_meta)
-
+                file_names_list.append(file_name)
+    # print('tiling takes {:02f} s'.format(time.time() - time_start))
+    # time_start = time.time()
+    workers = 16
+    with ThreadPoolExecutor(workers) as ex:
+        ex.map(write_tile, tiles_list, file_names_list, [save_dict] * len(tiles_list))
+    # print('saving a tile takes {:02f} s'.format(time.time() - time_start))
     if save_dict is None:
         if return_index:
-            return cropped_image_list, cropping_index
-        return cropped_image_list
+            return tiles_list, cropping_index
+        return tiles_list
     else:
         # create and save meta csv
         tile_meta_df = write_meta(tiled_metadata, save_dict)
@@ -332,6 +340,7 @@ def crop_at_indices(input_image,
 
     n_dim = len(input_image.shape)
     tiles_list = []
+    file_names_list = []
     im_depth = input_image.shape[2]
     tiled_metadata = []
     for cur_idx in crop_indices:
@@ -348,9 +357,14 @@ def crop_at_indices(input_image,
                 img_id = '{}_sl{}-{}'.format(img_id, 0, im_depth)
                 cropped_img = input_image[cur_idx[0]: cur_idx[1],
                                           cur_idx[2]: cur_idx[3], ...]
-
         if save_dict is not None:
-            file_name = write_tile(cropped_img, save_dict, img_id)
+            file_name = aux_utils.get_im_name(time_idx=save_dict['time_idx'],
+                                              channel_idx=save_dict['channel_idx'],
+                                              slice_idx=save_dict['slice_idx'],
+                                              pos_idx=save_dict['pos_idx'],
+                                              int2str_len=save_dict['int2str_len'],
+                                              extra_field=img_id)
+
             cur_metadata = {'channel_idx': save_dict['channel_idx'],
                             'slice_idx': save_dict['slice_idx'],
                             'time_idx': save_dict['time_idx'],
@@ -361,7 +375,11 @@ def crop_at_indices(input_image,
             if tile_3d:
                 cur_metadata['slice_start'] = cur_idx[4]
             tiled_metadata.append(cur_metadata)
-        tiles_list.append([img_id, cropped_img])
+        tiles_list.append(cropped_img)
+        file_names_list.append(file_name)
+    workers = 16
+    with ThreadPoolExecutor(workers) as ex:
+        ex.map(write_tile, tiles_list, file_names_list, [save_dict] * len(tiles_list))
     if save_dict is None:
         return tiles_list
     else:
@@ -369,7 +387,7 @@ def crop_at_indices(input_image,
         return tile_meta_df
 
 
-def write_tile(tile, save_dict, img_id):
+def write_tile(tile, file_name, save_dict):
     """
     Write tile function that can be called using threading.
 
@@ -380,16 +398,11 @@ def write_tile(tile, save_dict, img_id):
     :return str op_fname: filename used for saving the tile with entire path
     """
 
-    file_name = aux_utils.get_im_name(time_idx=save_dict['time_idx'],
-                                      channel_idx=save_dict['channel_idx'],
-                                      slice_idx=save_dict['slice_idx'],
-                                      pos_idx=save_dict['pos_idx'],
-                                      int2str_len=save_dict['int2str_len'],
-                                      extra_field=img_id)
+
     op_fname = os.path.join(save_dict['save_dir'], file_name)
     if save_dict['image_format'] == 'zyx' and len(tile.shape) > 2:
         tile = np.transpose(tile, (2, 0, 1))
-    np.save(op_fname, tile, allow_pickle=True, fix_imports=True)
+    np.save(op_fname, tile, allow_pickle=False, fix_imports=False)
     return file_name
 
 

@@ -1,0 +1,1 @@
+from micro_dl.inference.stitch_predictions import ImageStitcher
