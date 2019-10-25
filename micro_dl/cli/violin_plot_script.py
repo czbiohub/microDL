@@ -18,6 +18,12 @@ nuclei_model_dirs = [
     # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_nuclei_pix_iqr_norm',
 
 ]
+dim_model_dirs = ['2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+                        # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+                        'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+                        # 'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+                        'kidney_3d_128_128_96_cyclr_2',
+                        ]
 input_chan_names = ['retardance',
                          # 'bright-field',
                          'phase',
@@ -25,17 +31,19 @@ input_chan_names = ['retardance',
                          # '4_channel_bright-field',
                          ]
 
-target_chan_names = ['F-actin', 'nuclei']
+target_chan_names = ['F-actin', 'nuclei', 'F-actin']
 output_path = '/CompMicro/Projects/virtualstaining/datastage_figures/kidney_p122/'
 metric = 'ssim'
 green_color = ['#3CB371', '#008000']
 magenta_color = ['#EE82EE', '#FF00FF']
-plot_colors = [green_color, magenta_color]
-file_name = 'multi_contrast'
+gray_color = ['#646464', '#CBCBCB']
+plot_colors = [green_color, magenta_color, gray_color]
+file_names = ['multi_contrast']*2 + ['model_dim']
 
-target_model_dirs = [actin_model_dirs, nuclei_model_dirs]
+target_model_dirs = [actin_model_dirs, nuclei_model_dirs, dim_model_dirs]
 
-for target_chan, model_dirs, plot_color in zip(target_chan_names, target_model_dirs, plot_colors):
+for target_chan, model_dirs, plot_color, file_name in \
+        zip(target_chan_names, target_model_dirs, plot_colors, file_names):
     dir_dict = {input_chan: os.path.join(model_path, model_dir, 'predictions')
                 for model_dir, input_chan in zip(model_dirs, input_chan_names)}
     save_path = os.path.join(output_path,

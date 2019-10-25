@@ -55,16 +55,16 @@ if __name__ == '__main__':
     n_workers = 3
     gpu_ids = itertools.cycle(range(1, 4))
     for model_dir, gpu_id in zip(model_dirs, gpu_ids):
-        argin = ''.join(['python cli/image_inference.py --model_dir ',
-                         os.path.join(model_path, model_dir),
-                         ' --save_to_model_dir ',
-                         '--test_data ',
-                         '--image_dir ', image_path,
-                         ' --save_figs ',
-                         '--ext .tif ',
-                         '--gpu ', str(gpu_id),
-                         ' --metrics ',
-                         'coeff_determination ssim pearson_corr'])
+        # argin = ''.join(['python cli/image_inference.py --model_dir ',
+        #                  os.path.join(model_path, model_dir),
+        #                  ' --save_to_model_dir ',
+        #                  '--test_data ',
+        #                  '--image_dir ', image_path,
+        #                  ' --save_figs ',
+        #                  '--ext .tif ',
+        #                  '--gpu ', str(gpu_id),
+        #                  ' --metrics ',
+        #                  'coeff_determination ssim pearson_corr'])
 
         argin = ''.join(['python cli/image_inference.py --model_dir ',
                          os.path.join(model_path, model_dir),
