@@ -170,13 +170,16 @@ def run_prediction(model_dir,
         index_col=0,
     )
     # TODO: generate test_frames_meta.csv together with tile csv during training
-
+    num_target_channels = network_config['num_target_channels']
     if metrics is not None:
         if isinstance(metrics, str):
             metrics = [metrics]
-    metrics_cls = train_utils.get_metrics(metrics)
     loss = trainer_config['loss']
-    loss_cls = train_utils.get_loss(loss)
+    loss_cls = train_utils.get_loss(loss, n_target_chan=num_target_channels)
+    metrics_cls = train_utils.get_metrics(metrics,
+                                          loss_str=loss,
+                                          n_target_chan=num_target_channels)
+
     split_idx_name = dataset_config['split_by_column']
     K.set_image_data_format(network_config['data_format'])
     if test_data:
@@ -287,28 +290,33 @@ def run_prediction(model_dir,
                 )
                 print("Inference time:", time.time() - start)
                 # Write prediction image
-                im_name = aux_utils.get_im_name(
-                    time_idx=time_idx,
-                    channel_idx=input_channel,
-                    slice_idx=slice_idx,
-                    pos_idx=pos_idx,
-                    ext=ext,
-                )
-                file_name = os.path.join(pred_dir, im_name)
-                if ext == '.png':
-                    # Convert to uint16 for now
-                    im_pred = 2 ** 16 * (im_pred - im_pred.min()) / \
-                              (im_pred.max() - im_pred.min())
-                    im_pred = im_pred.astype(np.uint16)
-                    cv2.imwrite(file_name, np.squeeze(im_pred))
-                if ext == '.tif':
-                    # Convert to float32 and remove batch dimension
-                    im_pred = im_pred.astype(np.float32)
-                    cv2.imwrite(file_name, np.squeeze(im_pred))
-                elif ext == '.npy':
-                    np.save(file_name, im_pred, allow_pickle=True)
-                else:
-                    raise ValueError('Unsupported file extension')
+                pred_chan_params = ['mean', 'std']
+                for chan_idx, pred_chan_param in enumerate(pred_chan_params):
+                    im_pred_1chan = im_pred[:, chan_idx, ...]
+                    if pred_chan_param == 'std':
+                        im_pred_1chan = np.abs(im_pred_1chan)
+                    im_name = aux_utils.get_im_name(
+                        time_idx=time_idx,
+                        channel_idx=''.join([str(input_channel), '_', pred_chan_param]),
+                        slice_idx=slice_idx,
+                        pos_idx=pos_idx,
+                        ext=ext,
+                    )
+                    file_name = os.path.join(pred_dir, im_name)
+                    if ext == '.png':
+                        # Convert to uint16 for now
+                        im_pred_1chan = 2 ** 16 * (im_pred_1chan - im_pred_1chan.min()) / \
+                                  (im_pred_1chan.max() - im_pred_1chan.min())
+                        im_pred_1chan = im_pred_1chan.astype(np.uint16)
+                        cv2.imwrite(file_name, np.squeeze(im_pred_1chan))
+                    if ext == '.tif':
+                        # Convert to float32 and remove batch dimension
+                        im_pred_1chan = im_pred_1chan.astype(np.float32)
+                        cv2.imwrite(file_name, np.squeeze(im_pred_1chan))
+                    elif ext == '.npy':
+                        np.save(file_name, im_pred_1chan, allow_pickle=True)
+                    else:
+                        raise ValueError('Unsupported file extension')
 
                 # assuming target and predicted images are always 2D for now
                 # Load target

@@ -208,12 +208,14 @@ class BaseKerasTrainer:
         """
 
         loss_str = self.config['loss']
-        loss = get_loss(loss_str)
+        loss = get_loss(loss_str, n_target_chan=self.num_target_channels)
         optimizer = self._get_optimizer()
         callbacks = self._get_callbacks()
         if 'metrics' in self.config:
             metrics_list = self.config['metrics']
-            metrics = get_metrics(metrics_list)
+            metrics = get_metrics(metrics_list,
+                                  loss_str=loss_str,
+                                  n_target_chan=self.num_target_channels)
         else:
             metrics = None
 

@@ -157,7 +157,7 @@ def set_keras_session(gpu_ids, gpu_mem_frac):
     return sess
 
 
-def get_loss(loss_str):
+def get_loss(loss_str, n_target_chan=1):
     """Get loss type from config"""
 
     def _get_one_loss(cur_loss_str):
@@ -165,6 +165,9 @@ def get_loss(loss_str):
             loss_cls = getattr(keras_losses, cur_loss_str)
         elif hasattr(custom_losses, cur_loss_str):
             loss_cls = getattr(custom_losses, cur_loss_str)
+            #TODO: it might make sense to move the handling of masked loss to here
+            if cur_loss_str in ['bnn_loss', 'bnn_mse_loss']:
+                loss_cls = loss_cls(n_target_chan)
         else:
             raise ValueError('%s is not a valid loss' % cur_loss_str)
         return loss_cls
@@ -180,7 +183,7 @@ def get_loss(loss_str):
         return loss_cls_list
 
 
-def get_metrics(metrics_list):
+def get_metrics(metrics_list, loss_str=None, n_target_chan=1):
     """Get the metrics from config"""
 
     metrics_cls = []
@@ -192,6 +195,10 @@ def get_metrics(metrics_list):
             cur_metric_cls = getattr(keras_metrics, m)
         elif hasattr(custom_metrics, m):
             cur_metric_cls = getattr(custom_metrics, m)
+            if loss_str in ['bnn_loss', 'bnn_mse_loss']:
+                cur_metric_cls = \
+                    custom_metrics.bnn_metric(cur_metric_cls,
+                                              n_channels=n_target_chan)
         else:
             raise ValueError('%s is not a valid metric' % m)
         metrics_cls.append(cur_metric_cls)

@@ -221,7 +221,7 @@ def run_action(action,
     network_config = config['network']
 
     # Safety check: 2D UNets needs to have singleton dimension squeezed
-    if network_config['class'] == 'UNet2D':
+    if network_config['class'] in ['UNet2D', 'BayesUNet2D']:
         dataset_config['squeeze'] = True
     elif network_config['class'] == 'UNetStackTo2D':
         dataset_config['squeeze'] = False

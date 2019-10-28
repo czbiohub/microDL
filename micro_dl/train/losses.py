@@ -77,28 +77,6 @@ def ms_ssim_loss(y_true, y_pred):
     mae = mae_loss(y_true, y_pred)
     return 0.84 * (1.0 - metrics.ms_ssim(y_true, y_pred)) + 0.16 * mae
 
-
-def _split_ytrue_mask(y_true, n_channels):
-    """Split the mask concatenated with y_true
-
-    :param keras.tensor y_true: if channels_first, ytrue has shape [batch_size,
-     n_channels, y, x]. mask is concatenated as the n_channels+1, shape:
-     [[batch_size, n_channels+1, y, x].
-    :param int n_channels: number of channels in y_true
-    :return:
-     keras.tensor ytrue_split - ytrue with the mask removed
-     keras.tensor mask_image - bool mask
-    """
-
-    try:
-        split_axis = get_channel_axis(K.image_data_format())
-        y_true_split, mask_image = tf.split(y_true, [n_channels, 1],
-                                            axis=split_axis)
-        return y_true_split, mask_image
-    except Exception as e:
-        print('cannot separate mask and y_true' + str(e))
-
-
 def masked_loss(loss_fn, n_channels):
     """Converts a loss function to mask weighted loss function
 
@@ -122,7 +100,7 @@ def masked_loss(loss_fn, n_channels):
     """
 
     def masked_loss_fn(y_true, y_pred):
-        y_true, mask_image = _split_ytrue_mask(y_true, n_channels)
+        y_true, mask_image = metrics.split_tensor_channels(y_true, n_channels)
         loss = loss_fn(y_true, y_pred, mean_loss=False)
         total_loss = 0.0
         for ch_idx in range(n_channels):
@@ -146,3 +124,41 @@ def dice_coef_loss(y_true, y_pred):
     :return: Dice loss
     """
     return 1. - metrics.dice_coef(y_true, y_pred)
+
+def bnn_loss(n_channels):
+    """wrapper function for Bayesian loss to pass n_channels as input
+    :param n_channels:
+    :return:
+    """
+    def bnn_loss_fn(y_true, y_pred):
+        return weighted_mae_loss(y_true, y_pred, n_channels)
+    return bnn_loss_fn
+
+def weighted_mae_loss(y_true, y_pred, n_channels):
+    """Bayesian loss that includes data uncertainty term
+    """
+
+    y_pred_mean, y_pred_std = metrics.split_tensor_channels(y_pred, n_channels, n_channels/2)
+    mae_weighted = K.mean(K.abs(y_pred_mean - y_true) / (K.abs(y_pred_std) + K.epsilon()))
+    std_reg = K.mean(K.log(2*K.abs(y_pred_std)))
+    return mae_weighted + std_reg
+
+def bnn_mse_loss(n_channels):
+    """wrapper function for Bayesian loss to pass n_channels as input
+    :param n_channels:
+    :return:
+    """
+    def bnn_loss_fn(y_true, y_pred):
+        return weighted_mse_loss(y_true, y_pred, n_channels)
+    return bnn_loss_fn
+
+def weighted_mse_loss(y_true, y_pred, n_channels):
+    """Bayesian loss that includes data uncertainty term
+    """
+
+    y_pred_mean, y_pred_var = metrics.split_tensor_channels(y_pred, n_channels, n_channels/2)
+    mse_weighted = K.mean(K.square(y_pred_mean - y_true) / (0.01 * K.abs(y_pred_var) + K.epsilon()))
+    # mse_weighted = K.mean(K.square(y_pred_mean - y_true))
+    var_reg = K.mean(10 * K.log(K.abs(y_pred_var) + K.epsilon()))
+    return mse_weighted + var_reg
+    # return mse_weighted

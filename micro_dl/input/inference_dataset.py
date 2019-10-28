@@ -58,7 +58,7 @@ class InferenceDataset(keras.utils.Sequence):
 
         # if Unet2D 4D tensor, remove the singleton dimension, else 5D
         self.squeeze = False
-        if network_cls == 'UNet2D':
+        if network_cls in ['UNet2D', 'BayesUNet2D']:
             self.squeeze = True
 
         self.im_3d = False

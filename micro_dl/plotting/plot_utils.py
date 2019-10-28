@@ -53,8 +53,9 @@ def save_predicted_images(input_batch,
         cur_prediction = pred_batch[img_idx]
         
         n_ip_channels = cur_input.shape[0]
-        n_op_channels = cur_target.shape[0]
-        n_subplot = n_ip_channels + 2 * n_op_channels + 1
+        n_op_channels = cur_prediction.shape[0]
+        n_target_channels = cur_target.shape[0]
+        n_subplot = n_ip_channels + n_target_channels + n_op_channels + 1
         # make aspect ratio = 1:1.6
         n_rows = np.round(np.sqrt(n_subplot / 1.6)).astype(np.uint32)
         n_cols = np.ceil(n_subplot / n_rows).astype(np.uint32)
@@ -74,7 +75,7 @@ def save_predicted_images(input_batch,
             ax[axis_count].axis('off')
             ax[axis_count].set_title('Input', fontsize=font_size)
             axis_count += 1
-        for channel_idx in range(n_op_channels):
+        for channel_idx in range(n_target_channels):
             cur_target_chan = hist_clipping(
                 cur_target[channel_idx],
                 clip_limits,
@@ -84,6 +85,8 @@ def save_predicted_images(input_batch,
             ax[axis_count].axis('off')
             ax[axis_count].set_title('Target', fontsize=font_size)
             axis_count += 1
+
+        for channel_idx in range(n_op_channels):
             cur_pred_chan = hist_clipping(
                 cur_prediction[channel_idx],
                 clip_limits,

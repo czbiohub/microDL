@@ -2,6 +2,31 @@
 import keras.backend as K
 import numpy as np
 import tensorflow as tf
+import functools
+
+from micro_dl.utils.aux_utils import get_channel_axis
+
+
+def split_tensor_channels(y, n_channels, n_chan_split):
+    """Split the mask concatenated with y
+
+    :param keras.tensor y: if channels_first, ytrue has shape [batch_size,
+     n_channels, y, x]. mask is concatenated as the n_channels+1, shape:
+     [[batch_size, n_channels+1, y, x].
+    :param int n_channels: number of channels in y
+    :return:
+     keras.tensor ytrue_split - ytrue with the mask removed
+     keras.tensor mask_image - bool mask
+    """
+
+    try:
+        n_chan_split = int(n_chan_split)
+        split_axis = get_channel_axis(K.image_data_format())
+        y_split_1, y_split_2 = \
+            tf.split(y, [n_chan_split, n_channels - n_chan_split], axis=split_axis)
+        return y_split_1, y_split_2
+    except Exception as e:
+        print('cannot split channels of tensor y. ' + str(e))
 
 
 def coeff_determination(y_true, y_pred):
@@ -174,3 +199,11 @@ def pearson_corr(y_true, y_pred):
                         (y_true - K.mean(y_true)))
     r = covariance / (K.std(y_pred) * K.std(y_true) + K.epsilon())
     return r
+
+
+def bnn_metric(metric_fn, n_channels):
+    @functools.wraps(metric_fn)
+    def get_mean_chans(y_true, y_pred):
+        y_pred_mean, y_pred_std = split_tensor_channels(y_pred, n_channels, n_channels / 2)
+        return metric_fn(y_true, y_pred_mean)
+    return get_mean_chans
