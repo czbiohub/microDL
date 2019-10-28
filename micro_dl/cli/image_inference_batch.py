@@ -40,10 +40,10 @@ if __name__ == '__main__':
         # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_pix_iqr_norm_bnn_low_lr',
         # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_pix_iqr_norm_bnn',
         # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_var',
-        '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_100X_var',
-        '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_10X_var',
-        '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_1000X_var',
-        '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_no_var',
+        # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_100X_var',
+        # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_10X_var',
+        # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_1000X_var',
+        # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_no_var',
         '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_10X_var_10X_reg',
     ]
     image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
