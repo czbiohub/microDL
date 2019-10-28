@@ -46,7 +46,7 @@ if __name__ == '__main__':
         '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_no_var',
         '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_10X_var_10X_reg',
     ]
-    # image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
+    image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
 
     # model_path = '/CompMicro/Projects/brainarchitecture/train_pool_H9_H78_GW20_GW24/models'
     #
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     #               # 'pool_H9_H78_GW20_GW24_2D_MAE_4chan_phase_myelin_regis_pix_iqr_norm',
     #               ]
     # image_path = '/CompMicro/Projects/brainarchitecture/train_pool_H9_H78_GW20_GW24'
-    image_path = '/CompMicro/Projects/brainarchitecture/2019_06_21_GW20point5_H30-135_594Fluoromyelin_10X_overlapping/SMS_20190621_1550_3_SMS_20190621_1550_3_fit_order2_registered'
+    # image_path = '/CompMicro/Projects/brainarchitecture/2019_06_21_GW20point5_H30-135_594Fluoromyelin_10X_overlapping/SMS_20190621_1550_3_SMS_20190621_1550_3_fit_order2_registered'
     argin_list = []
     n_workers = 4
     gpu_ids = itertools.cycle(range(0, 4))
