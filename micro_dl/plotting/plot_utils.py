@@ -9,6 +9,27 @@ import numpy as np
 import os
 from micro_dl.utils.normalize import hist_clipping
 
+def im_bit_convert(im, bit=16, norm=False, limit=[]):
+    im = im.astype(np.float32, copy=False) # convert to float32 without making a copy to save memory
+    if norm:
+        if not limit:
+            limit = [np.nanmin(im[:]), np.nanmax(im[:])] # scale each image individually based on its min and max
+        im = (im-limit[0])/(limit[1]-limit[0])*(2**bit-1)
+    im = np.clip(im, 0, 2**bit-1) # clip the values to avoid wrap-around by np.astype
+    if bit==8:
+        im = im.astype(np.uint8, copy=False) # convert to 8 bit
+    else:
+        im = im.astype(np.uint16, copy=False) # convert to 16 bit
+    return im
+
+def im_adjust(img, tol=1, bit=8):
+    """
+    Adjust contrast of the image
+
+    """
+    limit = np.percentile(img, [tol, 100 - tol])
+    im_adjusted = im_bit_convert(img, bit=bit, norm=True, limit=limit.tolist())
+    return im_adjusted
 
 def save_predicted_images(input_batch,
                           target_batch,
@@ -86,30 +107,28 @@ def save_predicted_images(input_batch,
             ax[axis_count].set_title('Target', fontsize=font_size)
             axis_count += 1
 
-        for channel_idx in range(n_op_channels):
-            cur_pred_chan = hist_clipping(
-                cur_prediction[channel_idx],
-                clip_limits,
-                100 - clip_limits,
-            )
-            ax[axis_count].imshow(cur_pred_chan, cmap='gray')
+            cur_target_8bit = cv2.convertScaleAbs(cur_target_chan - np.min(cur_target_chan),
+                                                  alpha=255 / (np.max(cur_target_chan)
+                                                               - np.min(cur_target_chan)))
+
+        pred_chan_params = ['mean', 'std']
+        for channel_idx, pred_chan_param in enumerate(pred_chan_params):
+            cur_pred_1chan = cur_prediction[channel_idx]
+            if pred_chan_param == 'std':
+                cur_pred_1chan = np.abs(cur_pred_1chan)
+            cur_prediction_8bit = im_adjust(cur_pred_1chan)
+            ax[axis_count].imshow(cur_prediction_8bit, cmap='gray')
             ax[axis_count].axis('off')
 
-            ax[axis_count].set_title('Prediction', fontsize=font_size)
+            ax[axis_count].set_title('Prediction ' + pred_chan_param, fontsize=font_size)
             axis_count += 1
 
-            cur_target_8bit = cv2.convertScaleAbs(cur_target_chan - np.min(cur_target_chan),
-                                                  alpha=255/(np.max(cur_target_chan)
-                                                        - np.min(cur_target_chan)))
-            cur_prediction_8bit = cv2.convertScaleAbs(cur_pred_chan - np.min(cur_pred_chan),
-                                                      alpha=255/(np.max(cur_pred_chan)
-                                                            - np.min(cur_pred_chan)))
-            cur_target_pred = np.stack([cur_target_8bit, cur_prediction_8bit,
-                                        cur_target_8bit], axis=2)
-
-            ax[axis_count].imshow(cur_target_pred)
-            ax[axis_count].set_title('Overlay', fontsize=font_size)
-            axis_count += 1
+            if not pred_chan_param == 'std':
+                cur_target_pred = np.stack([cur_target_8bit, cur_prediction_8bit,
+                                            cur_target_8bit], axis=2)
+                ax[axis_count].imshow(cur_target_pred)
+                ax[axis_count].set_title('Overlay', fontsize=font_size)
+                axis_count += 1
         if batch_size != 1:
             fname = os.path.join(
                 output_dir,
