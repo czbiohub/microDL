@@ -6,6 +6,7 @@ import tensorflow as tf
 import micro_dl.train.metrics as metrics
 from micro_dl.utils.aux_utils import get_channel_axis
 
+# K.set_epsilon(1e-07)
 
 def mae_loss(y_true, y_pred, mean_loss=True):
     """Mean absolute error
@@ -155,10 +156,11 @@ def bnn_mse_loss(n_channels):
 def weighted_mse_loss(y_true, y_pred, n_channels):
     """Bayesian loss that includes data uncertainty term
     """
-
-    y_pred_mean, y_pred_var = metrics.split_tensor_channels(y_pred, n_channels, n_channels/2)
-    mse_weighted = K.mean(K.square(y_pred_mean - y_true) / (0.01 * K.abs(y_pred_var) + K.epsilon()))
+    limit = [-15, 15]
+    y_pred_mean, y_pred_log_var = metrics.split_tensor_channels(y_pred, n_channels, n_channels/2)
+    mse_weighted = K.mean(K.square(y_pred_mean - y_true) /
+                          (2 * K.exp(K.clip(y_pred_log_var, limit[0], limit[1]))))
     # mse_weighted = K.mean(K.square(y_pred_mean - y_true))
-    var_reg = K.mean(10 * K.log(K.abs(y_pred_var) + K.epsilon()))
+    var_reg = 0.5 * K.mean(K.clip(y_pred_log_var, limit[0], limit[1]))
     return mse_weighted + var_reg
     # return mse_weighted
