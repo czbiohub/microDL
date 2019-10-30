@@ -294,7 +294,8 @@ def run_prediction(model_dir,
                 for chan_idx, pred_chan_param in enumerate(pred_chan_params):
                     im_pred_1chan = im_pred[:, chan_idx, ...]
                     if pred_chan_param == 'std':
-                        im_pred_1chan = np.abs(im_pred_1chan)
+                        im_pred_1chan = np.exp(0.5 * im_pred_1chan)
+                        im_pred[:, chan_idx, ...] = im_pred_1chan
                     im_name = aux_utils.get_im_name(
                         time_idx=time_idx,
                         channel_idx=''.join([str(input_channel), '_', pred_chan_param]),
@@ -376,7 +377,7 @@ def run_prediction(model_dir,
                         output_dir=fig_dir,
                         output_fname=im_name[:-4],
                         ext='jpg',
-                        clip_limits=1,
+                        clip_limits=0.1,
                         font_size=15
                     )
 

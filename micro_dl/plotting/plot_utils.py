@@ -8,6 +8,7 @@ import natsort
 import numpy as np
 import os
 from micro_dl.utils.normalize import hist_clipping
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def im_bit_convert(im, bit=16, norm=False, limit=[]):
     im = im.astype(np.float32, copy=False) # convert to float32 without making a copy to save memory
@@ -30,6 +31,13 @@ def im_adjust(img, tol=1, bit=8):
     limit = np.percentile(img, [tol, 100 - tol])
     im_adjusted = im_bit_convert(img, bit=bit, norm=True, limit=limit.tolist())
     return im_adjusted
+
+def colorbar(mappable):
+    ax = mappable.axes
+    fig = ax.figure
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    return fig.colorbar(mappable, cax=cax)
 
 def save_predicted_images(input_batch,
                           target_batch,
@@ -76,7 +84,7 @@ def save_predicted_images(input_batch,
         n_ip_channels = cur_input.shape[0]
         n_op_channels = cur_prediction.shape[0]
         n_target_channels = cur_target.shape[0]
-        n_subplot = n_ip_channels + n_target_channels + n_op_channels + 1
+        n_subplot = n_ip_channels + n_target_channels + n_op_channels + 2
         # make aspect ratio = 1:1.6
         n_rows = np.round(np.sqrt(n_subplot / 1.6)).astype(np.uint32)
         n_cols = np.ceil(n_subplot / n_rows).astype(np.uint32)
@@ -87,48 +95,59 @@ def save_predicted_images(input_batch,
         fig.set_size_inches((15, 5 * n_rows))
         axis_count = 0
         for channel_idx in range(n_ip_channels):
-            cur_im = hist_clipping(
-                cur_input[channel_idx],
-                clip_limits,
-                100 - clip_limits,
-            )
-            ax[axis_count].imshow(cur_im, cmap='gray')
+            cur_input = cur_input[channel_idx]
+            cur_input_8bit = im_adjust(cur_input, tol=clip_limits)
+            ax[axis_count].imshow(cur_input_8bit, cmap='gray')
             ax[axis_count].axis('off')
             ax[axis_count].set_title('Input', fontsize=font_size)
             axis_count += 1
+
         for channel_idx in range(n_target_channels):
-            cur_target_chan = hist_clipping(
-                cur_target[channel_idx],
-                clip_limits,
-                100 - clip_limits,
-            )
-            ax[axis_count].imshow(cur_target_chan, cmap='gray')
+            cur_target_1chan = cur_target[channel_idx]
+            cur_target_8bit = im_adjust(cur_target_1chan, tol=clip_limits)
+            pmin, pmax = np.percentile(cur_target_1chan,
+                                       [clip_limits, 100 - clip_limits])
+            im_ax = ax[axis_count].imshow(np.clip(cur_target_1chan, pmin, pmax), cmap='gray')
+            colorbar(im_ax)
             ax[axis_count].axis('off')
             ax[axis_count].set_title('Target', fontsize=font_size)
             axis_count += 1
 
-            cur_target_8bit = cv2.convertScaleAbs(cur_target_chan - np.min(cur_target_chan),
-                                                  alpha=255 / (np.max(cur_target_chan)
-                                                               - np.min(cur_target_chan)))
+        # pred_chan_params = ['mean', 'std']
+        # for channel_idx, pred_chan_param in enumerate(pred_chan_params):
+        cur_pred_1chan = cur_prediction[0]
+        cur_prediction_8bit = im_adjust(cur_pred_1chan, tol=clip_limits)
+        im_ax = ax[axis_count].imshow(cur_pred_1chan, vmin=pmin, vmax=pmax, cmap='gray')
+        colorbar(im_ax)
+        ax[axis_count].axis('off')
+        ax[axis_count].set_title('Prediction mean', fontsize=font_size)
+        axis_count += 1
 
-        pred_chan_params = ['mean', 'std']
-        for channel_idx, pred_chan_param in enumerate(pred_chan_params):
-            cur_pred_1chan = cur_prediction[channel_idx]
-            if pred_chan_param == 'std':
-                cur_pred_1chan = np.abs(cur_pred_1chan)
-            cur_prediction_8bit = im_adjust(cur_pred_1chan)
-            ax[axis_count].imshow(cur_prediction_8bit, cmap='gray')
-            ax[axis_count].axis('off')
+        cur_pred_err = np.abs(cur_pred_1chan - cur_target_1chan)
+        cur_pred_err_8bit = im_adjust(cur_pred_err, tol=clip_limits)
+        pmin, pmax = np.percentile(cur_pred_err,
+                                   [clip_limits, 100 - clip_limits])
+        cur_target_pred = np.stack([cur_target_8bit, cur_prediction_8bit,
+                                    cur_target_8bit], axis=2)
+        ax[axis_count].imshow(cur_target_pred)
+        ax[axis_count].set_title('Overlay', fontsize=font_size)
+        axis_count += 1
 
-            ax[axis_count].set_title('Prediction ' + pred_chan_param, fontsize=font_size)
-            axis_count += 1
+        im_ax_err = ax[axis_count].imshow(np.clip(cur_pred_err, pmin, pmax))
+        ax[axis_count].set_title('Prediction mean - Target', fontsize=font_size)
+        colorbar(im_ax_err)
+        plt.show()
+        axis_count += 1
 
-            if not pred_chan_param == 'std':
-                cur_target_pred = np.stack([cur_target_8bit, cur_prediction_8bit,
-                                            cur_target_8bit], axis=2)
-                ax[axis_count].imshow(cur_target_pred)
-                ax[axis_count].set_title('Overlay', fontsize=font_size)
-                axis_count += 1
+        cur_pred_1chan = cur_prediction[1]
+        cur_prediction_8bit = im_adjust(cur_pred_1chan, tol=clip_limits)
+        im_ax_std = ax[axis_count].imshow(cur_pred_1chan,vmin=pmin, vmax=pmax)
+        colorbar(im_ax_std)
+        ax[axis_count].axis('off')
+        ax[axis_count].set_title('Prediction std', fontsize=font_size)
+        plt.show()
+        axis_count += 1
+
         if batch_size != 1:
             fname = os.path.join(
                 output_dir,
