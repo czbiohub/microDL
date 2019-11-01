@@ -36,7 +36,7 @@ if __name__ == '__main__':
         # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_nuclei_pix_iqr_norm_v3',
         # 'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
-        '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_log_var',
+        '2D_fltr32_512_do0_otus_MSE_1chan_ret_actin_bnn_log_var',
     ]
     image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
 
