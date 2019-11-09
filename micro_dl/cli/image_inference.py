@@ -84,12 +84,28 @@ def parse_args():
         default='.tif',
         help="Image extension. If .png rescales to uint16, otherwise save as is",
     )
+
     parser.add_argument(
         '--save_figs',
         dest='save_figs',
         action='store_true',
         help="Saves input, target, prediction plots. Assumes you have target channel",
     )
+
+    parser.add_argument(
+        '--pred_data_std',
+        dest='pred_data_std',
+        action='store_true',
+        help="predict data uncertainty",
+    )
+
+    parser.add_argument(
+        '--pred_model_std',
+        dest='pred_model_std',
+        action='store_true',
+        help="predict model uncertainty",
+    )
+
     parser.add_argument(
         '--no_figs',
         dest='save_figs',
@@ -97,6 +113,15 @@ def parse_args():
         help="Don't save plots"
     )
     parser.set_defaults(save_figs=False)
+    parser.set_defaults(save_figs=False)
+    parser.set_defaults(save_figs=False)
+
+    parser.add_argument(
+        '--n_model_std',
+        type=int,
+        default=1,
+        help="number of samples for std estimation",
+    )
 
     parser.add_argument(
         '--metrics',
@@ -118,7 +143,10 @@ def run_prediction(model_dir,
                    test_data=True,
                    ext='.tif',
                    save_figs=False,
-                   save_to_image_dir=False):
+                   save_to_image_dir=False,
+                   pred_data_std=False,
+                   pred_model_std=False,
+                   n_model_std=None):
     """
     Predict images given model + weights.
     If the test_data flag is set to True, the test indices in
@@ -153,6 +181,8 @@ def run_prediction(model_dir,
         test_frames_meta_filename = os.path.join(image_dir, os.path.basename(model_dir), 'test_frames_meta.csv')
     else:
         pred_dir = os.path.join(model_dir, 'predictions')
+        if pred_model_std or pred_data_std:
+            pred_dir = ''.join([pred_dir, 'bnn'], sep='_')
         test_frames_meta_filename = os.path.join(model_dir, 'test_frames_meta.csv')
 
     with open(config_name, 'r') as f:
@@ -246,6 +276,9 @@ def run_prediction(model_dir,
     pp_config = preprocess_utils.get_pp_config(config['dataset']['data_dir'])
     normalize_im = pp_config['normalize_im']
 
+    if pred_model_std:
+        K.set_learning_phase(1)
+
     # Iterate over all indices for test data
     for time_idx in metadata_ids['time_idx']:
         for pos_idx in metadata_ids['pos_idx']:
@@ -284,11 +317,19 @@ def run_prediction(model_dir,
                 im_stack = im_stack[np.newaxis, ...]
                 # Predict on large image
                 start = time.time()
-                im_pred = inference.predict_on_larger_image(
-                    model=model,
-                    input_image=im_stack,
-                )
+                im_pred_list = []
+                for model_idx in range(n_model_std):
+                    print("Running inference of model ", str(model_idx))
+                    im_pred = inference.predict_on_larger_image(
+                        model=model,
+                        input_image=im_stack,
+                    )
+                    im_pred_list.append(im_pred)
                 print("Inference time:", time.time() - start)
+                im_pred_stack = np.concatenate(im_pred_list, axis=1)
+                im_pred_mean = np.mean(im_pred_stack, axis=1, keepdims=True)
+                im_pred_std = np.std(im_pred_stack, axis=1, keepdims=True)
+                im_pred = np.concatenate([im_pred_mean, im_pred_std], axis=1)
                 # Write prediction image
                 pred_chan_params = ['mean', 'std']
                 for chan_idx, pred_chan_param in enumerate(pred_chan_params):
@@ -403,5 +444,8 @@ if __name__ == '__main__':
         ext=args.ext,
         save_figs=args.save_figs,
         save_to_image_dir=args.save_to_image_dir,
+        pred_data_std=args.pred_data_std,
+        pred_model_std=args.pred_model_std,
+        n_model_std=args.n_model_std,
     )
 
