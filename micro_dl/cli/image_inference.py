@@ -181,8 +181,10 @@ def run_prediction(model_dir,
         test_frames_meta_filename = os.path.join(image_dir, os.path.basename(model_dir), 'test_frames_meta.csv')
     else:
         pred_dir = os.path.join(model_dir, 'predictions')
-        if pred_model_std or pred_data_std:
-            pred_dir = ''.join([pred_dir, 'bnn'], sep='_')
+        if pred_model_std:
+            pred_dir = '_'.join([pred_dir, 'pred_model_std'])
+        elif pred_data_std:
+            pred_dir = '_'.join([pred_dir, 'pred_data_std'])
         test_frames_meta_filename = os.path.join(model_dir, 'test_frames_meta.csv')
 
     with open(config_name, 'r') as f:
@@ -265,6 +267,8 @@ def run_prediction(model_dir,
     if 'data_format' in network_config:
         data_format = network_config['data_format']
     # Load model with predict = True
+    if pred_model_std:
+        K.set_learning_phase(1)
     model = inference.load_model(
         network_config=network_config,
         model_fname=weights_path,
@@ -275,9 +279,6 @@ def run_prediction(model_dir,
     model.compile(loss=loss_cls, optimizer=optimizer, metrics=metrics_cls)
     pp_config = preprocess_utils.get_pp_config(config['dataset']['data_dir'])
     normalize_im = pp_config['normalize_im']
-
-    if pred_model_std:
-        K.set_learning_phase(1)
 
     # Iterate over all indices for test data
     for time_idx in metadata_ids['time_idx']:
@@ -325,10 +326,12 @@ def run_prediction(model_dir,
                         input_image=im_stack,
                     )
                     im_pred_list.append(im_pred)
+                    print('learning_phase: ', K.learning_phase())
                 print("Inference time:", time.time() - start)
                 im_pred_stack = np.concatenate(im_pred_list, axis=1)
                 im_pred_mean = np.mean(im_pred_stack, axis=1, keepdims=True)
                 im_pred_std = np.std(im_pred_stack, axis=1, keepdims=True)
+                print(np.mean(im_pred_std))
                 im_pred = np.concatenate([im_pred_mean, im_pred_std], axis=1)
                 # Write prediction image
                 pred_chan_params = ['mean', 'std']

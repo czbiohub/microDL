@@ -141,7 +141,8 @@ def save_predicted_images(input_batch,
 
         cur_pred_1chan = cur_prediction[1]
         cur_prediction_8bit = im_adjust(cur_pred_1chan, tol=clip_limits)
-        im_ax_std = ax[axis_count].imshow(cur_pred_1chan,vmin=pmin, vmax=pmax)
+        # im_ax_std = ax[axis_count].imshow(cur_pred_1chan,vmin=pmin, vmax=pmax)
+        im_ax_std = ax[axis_count].imshow(hist_clipping(cur_pred_1chan, clip_limits, 100 - clip_limits))
         colorbar(im_ax_std)
         ax[axis_count].axis('off')
         ax[axis_count].set_title('Prediction std', fontsize=font_size)
