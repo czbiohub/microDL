@@ -112,8 +112,8 @@ def parse_args():
         action='store_false',
         help="Don't save plots"
     )
-    parser.set_defaults(save_figs=False)
-    parser.set_defaults(save_figs=False)
+    parser.set_defaults(pred_model_std=False)
+    parser.set_defaults(pred_data_std=False)
     parser.set_defaults(save_figs=False)
 
     parser.add_argument(
@@ -325,14 +325,15 @@ def run_prediction(model_dir,
                         model=model,
                         input_image=im_stack,
                     )
-                    im_pred_list.append(im_pred)
+                    im_pred_list.append(im_pred[:, 0, None, ...])
                     print('learning_phase: ', K.learning_phase())
                 print("Inference time:", time.time() - start)
-                im_pred_stack = np.concatenate(im_pred_list, axis=1)
-                im_pred_mean = np.mean(im_pred_stack, axis=1, keepdims=True)
-                im_pred_std = np.std(im_pred_stack, axis=1, keepdims=True)
-                print(np.mean(im_pred_std))
-                im_pred = np.concatenate([im_pred_mean, im_pred_std], axis=1)
+                if pred_model_std:
+                    im_pred_stack = np.concatenate(im_pred_list, axis=1)
+                    im_pred_mean = np.mean(im_pred_stack, axis=1, keepdims=True)
+                    im_pred_std = np.std(im_pred_stack, axis=1, keepdims=True)
+                    print(np.mean(im_pred_std))
+                    im_pred = np.concatenate([im_pred_mean, im_pred_std], axis=1)
                 # Write prediction image
                 pred_chan_params = ['mean', 'std']
                 for chan_idx, pred_chan_param in enumerate(pred_chan_params):
