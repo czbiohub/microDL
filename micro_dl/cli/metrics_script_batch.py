@@ -29,16 +29,24 @@ if __name__ == '__main__':
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_nuclei_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
-        '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+        # '2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
         # 'kidney_3d_128_128_96_cyclr_2',
         # 'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_actin_pix_iqr_norm',
         # 'Stack_fltr16_256_do20_otus_MAE_3chan_ret+ori_nuclei_pix_iqr_norm',
-        'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+        # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_nuclei_pix_iqr_norm_v2',
-        'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+        # 'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+        # 'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm_tf20_pt40',
+        # 'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_pix_iqr_norm_tf10_pt20',
+        # 'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_pix_iqr_norm_tf20_pt40',
+        # 'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_stack_norm_tf10_pt20',
+        # 'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_stack_norm_tf10_pt20',
+        # 'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_stack_norm_tf20_pt40',
+        'registered_kidney_2019_z5_l1_rosin_4channels',
+        'registered_kidney_2019_z5_l1_rosin',
     ]
-    image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
-
+    # image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
+    image_path = "/data/folkesson/SMS_2018_1227_1433_1_BG_2019_0215_1337_1_registered"
     # model_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
     #              '2019_02_15_kidney_slice/models_kidney_20190215'
     # model_dirs = [

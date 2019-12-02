@@ -36,8 +36,15 @@ if __name__ == '__main__':
         # 'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
         # 'Stack_fltr16_256_do20_otus_MAE_4chan_phase_nuclei_pix_iqr_norm_v3',
         # 'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
-        '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_log_var',
-        '2D_fltr32_512_do0_otus_MSE_1chan_ret_actin_bnn_log_var',
+        # '2D_fltr16_256_do0_otus_MSE_1chan_ret_actin_bnn_log_var',
+        # '2D_fltr32_512_do0_otus_MSE_1chan_ret_actin_bnn_log_var',
+        'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm_tf20_pt40',
+        'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_pix_iqr_norm_tf10_pt20',
+        'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_pix_iqr_norm_tf20_pt40',
+        'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_stack_norm_tf10_pt20',
+        'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_stack_norm_tf10_pt20',
+        'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_stack_norm_tf20_pt40',
+
     ]
     image_path = '/CompMicro/Projects/virtualstaining/kidneyslice/2019_02_15_kidney_slice/SMS_2018_1227_1433_1_SMS_2018_1227_1433_1_registered'
 
@@ -66,8 +73,8 @@ if __name__ == '__main__':
                          '--gpu ', str(gpu_id),
                          ' --metrics ',
                          'coeff_determination ssim pearson_corr ',
-                         '--pred_data_std ',
-                         '--n_model_std 10',
+                         # '--pred_data_std ',
+                         # '--n_model_std 10',
                          ])
 
         # argin = ''.join(['python cli/image_inference.py --model_dir ',

@@ -51,7 +51,7 @@ def save_predicted_images(input_batch,
         cur_input = input_batch[img_idx]
         cur_target = target_batch[img_idx]
         cur_prediction = pred_batch[img_idx]
-
+        
         n_ip_channels = cur_input.shape[0]
         n_op_channels = cur_target.shape[0]
         n_subplot = n_ip_channels + 2 * n_op_channels + 1
@@ -117,18 +117,14 @@ def save_predicted_images(input_batch,
 
 
 def save_center_slices(image_dir,
-                       t_idx,
                        pos_idx,
-                       chan_name,
                        save_path,
-                       plot_range=None,
                        mean_std=None,
                        clip_limits=1,
                        margin=20,
                        z_scale=5,
                        z_range=None,
                        channel_str=None,
-                       z_view=['xz', 'yz'],
                        font_size=15,
                        color_map='gray',
                        fig_title=None):
@@ -156,8 +152,7 @@ def save_center_slices(image_dir,
     :param str color_map: Matplotlib colormap
     :param str fig_title: Figure title
     """
-
-    search_str = os.path.join(image_dir, "im*_{}_t{:03d}_p{:03d}*".format(chan_name, t_idx, pos_idx))
+    search_str = os.path.join(image_dir, "*p{:03d}*".format(pos_idx))
     slice_names = natsort.natsorted(glob.glob(search_str))
 
     if channel_str is not None:
@@ -168,19 +163,14 @@ def save_center_slices(image_dir,
         assert len(z_range) == 2, 'Z-range must consist of two values'
         slice_names = slice_names[z_range[0]:z_range[1]]
     assert len(slice_names) > 0, \
-        "Couldn't find images in {} with given search criteria".format(image_dir)
+        "Couldn't find images with given search criteria"
 
-    # 3d inference output is single .npy per volume
-    if len(slice_names) == 1 and slice_names[0][-3:] == 'npy':
-        im_stack = np.load(slice_names[0])
-        im_stack = np.transpose(im_stack, (1, 2, 0))
-    else:
-        im_stack = []
-        for im_z in slice_names:
-            im_stack.append(cv2.imread(im_z, cv2.IMREAD_ANYDEPTH))
-        im_stack = np.stack(im_stack, axis=-1)
+    im_stack = []
+    for im_z in slice_names:
+        im_stack.append(cv2.imread(im_z, cv2.IMREAD_ANYDEPTH))
+    im_stack = np.stack(im_stack, axis=-1)
     # If mean and std tuple exist, scale, otherwise leave as is
-    im_norm = im_adjust(im_stack, clip_limits)
+    im_norm = im_stack
     if isinstance(mean_std, tuple):
         im_norm = im_stack / im_stack.std() * mean_std[0]
         im_norm = im_norm - im_norm.mean() + mean_std[1]
@@ -188,85 +178,46 @@ def save_center_slices(image_dir,
         im_norm[im_norm < 0] = 0.
         # Convert to uint16
         im_norm = im_norm.astype(np.uint16)
-    if plot_range is not None:
-        im_norm = im_norm[plot_range[0]:plot_range[0] + plot_range[2],
-                          plot_range[1]:plot_range[1] + plot_range[3], :]
+
     # Add xy center slice to plot image (canvas)
-    im_shape = im_norm.shape
-    center_slice = im_norm[..., int(im_shape[2] // 2)]
-
+    center_slice = hist_clipping(
+        im_norm[..., int(len(slice_names) // 2)],
+        clip_limits, 100 - clip_limits,
+    )
+    im_shape = im_stack.shape
+    canvas = center_slice.max() * np.ones(
+        (im_shape[0] + im_shape[2] * z_scale + margin,
+         im_shape[1] + im_shape[2] * z_scale + margin),
+        dtype=np.uint16,
+    )
+    canvas[0:im_shape[0], 0:im_shape[1]] = center_slice
     # add yz center slice
-    yz_slice = np.squeeze(im_norm[:, int(im_shape[1] // 2), :])
+    yz_slice = hist_clipping(
+        np.squeeze(im_norm[:, int(im_shape[1] // 2), :]),
+        clip_limits, 100 - clip_limits,
+    )
     yz_shape = yz_slice.shape
-    yz_slice = cv2.resize(yz_slice, (int(yz_shape[1] * z_scale), yz_shape[0]))
-
-    # add xz center slice
-    xz_slice = np.squeeze(im_norm[int(im_shape[1] // 2), :, :])
-    xz_shape = xz_slice.shape
-    xz_slice = cv2.resize(xz_slice, (int(xz_shape[1] * z_scale), xz_shape[0]))
+    yz_slice = cv2.resize(yz_slice, (yz_shape[1] * int(z_scale), yz_shape[0]))
+    canvas[0:yz_shape[0], im_shape[1] + margin:] = yz_slice
+    # add xy center slice
+    xy_slice = hist_clipping(
+        np.squeeze(im_norm[int(im_shape[1] // 2), :, :]),
+        clip_limits, 100 - clip_limits,
+    )
+    xy_shape = xy_slice.shape
+    xy_slice = cv2.resize(xy_slice, (xy_shape[1] * int(z_scale), xy_shape[0]))
     # Need to rotate to fit this slice on the bottom of canvas
-    xz_slice = np.rot90(xz_slice)
+    xy_slice = np.rot90(xy_slice)
+    canvas[im_shape[0] + margin:, 0:xy_slice.shape[1]] = xy_slice
 
-    max_pix_val = max(center_slice.max(), xz_slice.max(), yz_slice.max())
-    canvas = center_slice
-    if z_view == 'yz':
-        canvas = np.hstack((canvas,
-                            np.ones((im_shape[0], margin), dtype=np.uint8) * max_pix_val,
-                            yz_slice))
-    elif z_view == 'xz':
-        space = np.ones((margin, im_shape[1]), dtype=np.uint8) * max_pix_val
-        canvas = np.vstack((canvas,
-                            space,
-                            xz_slice))
-    elif z_view == ['xz', 'yz'] or z_view == ['yz', 'xz']:
-        canvas = max_pix_val * np.ones(
-            (im_shape[0] + int(im_shape[2] * z_scale) + margin,
-             im_shape[1] + int(im_shape[2] * z_scale) + margin),
-            dtype=np.uint8,
-        )
-        canvas[0:im_shape[0], 0:im_shape[1]] = center_slice
-        canvas[0:yz_shape[0], im_shape[1] + margin:] = yz_slice
-        canvas[im_shape[0] + margin:, 0:xz_slice.shape[1]] = xz_slice
+    plt.imshow(canvas, cmap=color_map)
+    plt.axis('off')
+    if fig_title is not None:
+        plt.title(fig_title, fontsize=font_size)
 
-    export_img(canvas, save_path)
-    # plt.imshow(canvas, cmap=color_map)
-    # plt.axis('off')
-    # if fig_title is not None:
-    #     plt.title(fig_title, fontsize=font_size)
-    #
-    # plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    # plt.close()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
 
-def im_bit_convert(im, bit=16, norm=False, limit=[]):
-    im = im.astype(np.float32, copy=False) # convert to float32 without making a copy to save memory
-    if norm:
-        if not limit:
-            limit = [np.nanmin(im[:]), np.nanmax(im[:])] # scale each image individually based on its min and max
-        im = (im-limit[0])/(limit[1]-limit[0])*(2**bit-1)
-    im = np.clip(im, 0, 2**bit-1) # clip the values to avoid wrap-around by np.astype
-    if bit==8:
-        im = im.astype(np.uint8, copy=False) # convert to 8 bit
-    else:
-        im = im.astype(np.uint16, copy=False) # convert to 16 bit
-    return im
-
-
-def im_adjust(img, tol=1):
-    """
-    Adjust contrast of the image
-
-    """
-    limit = np.percentile(img, [tol, 100 - tol])
-    im_adjusted = im_bit_convert(img, bit=8, norm=True, limit=limit.tolist())
-    return im_adjusted
-
-
-def export_img(im_input, output_path):
-    if len(im_input.shape) < 3:
-        cv2.imwrite(output_path, im_input)
-    else:
-        cv2.imwrite(output_path,
-                    cv2.cvtColor(im_input, cv2.COLOR_RGB2BGR))
 
 def save_mask_overlay(input_image, mask, op_fname, alpha=0.7):
     """
