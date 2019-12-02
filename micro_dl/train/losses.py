@@ -101,7 +101,7 @@ def masked_loss(loss_fn, n_channels):
     """
 
     def masked_loss_fn(y_true, y_pred):
-        y_true, mask_image = metrics.split_tensor_channels(y_true, n_channels)
+        y_true, mask_image = metrics.split_tensor_channels(y_true, n_channels + 1, n_channels)
         loss = loss_fn(y_true, y_pred, mean_loss=False)
         total_loss = 0.0
         for ch_idx in range(n_channels):
