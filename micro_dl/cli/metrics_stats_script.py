@@ -35,8 +35,9 @@ def metrics_stats(model_path,
             metric_df = pd.read_csv(os.path.join(model_path, model_dir, 'predictions', metric_csv_name),
                                     index_col=0)
             metric_column_names = ['{}_{}'.format(metric, orientation) for metric in metrics]
-            metric_df_stats = metric_df[metrics].agg('median')
-            metric_df_stats = metric_df_stats.to_frame().T
+            # metric_df_stats = metric_df[metrics].agg('median')
+            metric_df_stats = metric_df.loc[metric_df['pred_name'] == 't0_p122_xy37', metrics]
+            # metric_df_stats = metric_df_stats.to_frame().T
             metric_df_stats.columns = metric_column_names
             df_stats_row.append(metric_df_stats)
         df_stats_row = pd.concat(df_stats_row, axis=1)
@@ -47,7 +48,7 @@ def metrics_stats(model_path,
         df_stats_tex_row['loss'] = 'L1'
         df_stats = df_stats.append(df_stats_row[column_names], ignore_index=True)
         df_stats_tex = df_stats_tex.append(df_stats_tex_row[column_tex_names], ignore_index=True)
-    df_stats.to_csv(os.path.join(model_path, ''.join(['metric_', target_chan_name, '.csv'])), sep=',')
+    df_stats.to_csv(os.path.join(model_path, ''.join(['metric_', target_chan_name, '_single_FOV.csv'])), sep=',')
     df_stats_tex.to_csv(os.path.join(model_path, ''.join(['metric_tex_', target_chan_name, '.csv'])),
                         sep='&', float_format='%.2f', index=False)
 
@@ -55,18 +56,29 @@ def metrics_stats(model_path,
 if __name__ == '__main__':
     model_path = '/CompMicro/Projects/virtualstaining/kidneyslice/' \
                  '2019_02_15_kidney_slice/models_kidney_20190215'
-    actin_model_dirs = ['2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
-                        'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
-                        'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
-                        'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
-                        'kidney_3d_128_128_96_cyclr_2',
-                        ]
+    # actin_model_dirs = ['2D_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+    #                     'Stack3_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+    #                     'Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
+    #                     'Stack7_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm_v3',
+    #                     'kidney_3d_128_128_96_cyclr_2',
+    #                     ]
     # actin_model_dirs = ['Stack_fltr16_256_do20_otus_MAE_1chan_ret_actin_pix_iqr_norm',
     #                     'Stack_fltr16_256_do20_otus_MAE_1chan_bf_actin_pix_iqr_norm',
     #                     'Stack_fltr16_256_do20_otus_MAE_1chan_phase_actin_pix_iqr_norm',
     #                     'Stack_fltr16_256_do20_otus_MAE_4chan_phase_actin_pix_iqr_norm',
     #                     'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
     #                     ]
+
+    actin_model_dirs = [
+        'Stack_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm',
+        'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_pix_iqr_norm_tf20_pt40',
+        'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_stack_norm_tf10_pt20',
+        'Stack5_fltr16_256_do20_otus_MAE_4chan_bf_actin_stack_norm_tf20_pt40',
+        'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_pix_iqr_norm_tf10_pt20',
+        'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_pix_iqr_norm_tf20_pt40',
+        'Stack5_fltr16_256_do20_otus_masked_MAE_4chan_bf_actin_stack_norm_tf10_pt20',
+        'registered_kidney_2019_z5_l1_rosin_4channels',
+                        ]
     nuclei_model_dirs = [
                    'Stack_fltr16_256_do20_otus_MAE_1chan_ret_nuclei_pix_iqr_norm',
                     'Stack_fltr16_256_do20_otus_MAE_1chan_bf_nuclei_pix_iqr_norm',
@@ -85,22 +97,32 @@ if __name__ == '__main__':
     #                          '4_channel_phase',
     #                          '4_channel_bright-field',
     #                          ]
-    input_chan_names = ['retardance'] * len(actin_model_dirs)
+    # input_chan_names = ['retardance'] * len(actin_model_dirs)
+    input_chan_names = ['4_channel_bright-field'] * len(actin_model_dirs)
 
     # translation_models = ['2.5D']+[''] * (len(input_chan_names)-1)
-    translation_models = ['2D', '2.5D, z=3', '2.5D, z=5', '2.5D, z=7', '3D']
+    # translation_models = ['2D', '2.5D, z=3', '2.5D, z=5', '2.5D, z=7', '3D']
+    translation_models = ['dataset norm',
+                          'dataset norm; long',
+                          'stack norm',
+                          'stack norm; long',
+                          'masked; dataset norm',
+                          'masked; dataset norm; long',
+                          'masked; stack norm',
+                          'masked; stack norm, long (Jenny)']
 
 
-    input_chan_tex_names = [r'$\rho$',
-                            '$\phi$',
-                            'BF',
-                            r'$\phi$, $\rho$, $\omega_x$, $\omega_y$',
-                            r'BF, $\rho$, $\omega_x$, $\omega_y$',
-                            ]
-    # input_chan_tex_names = [r'$\rho$'] * len(actin_model_dirs)
+    # input_chan_tex_names = [r'$\rho$',
+    #                         '$\phi$',
+    #                         'BF',
+    #                         r'$\phi$, $\rho$, $\omega_x$, $\omega_y$',
+    #                         r'BF, $\rho$, $\omega_x$, $\omega_y$',
+    #                         ]
+    input_chan_tex_names = [r'$\rho$'] * len(actin_model_dirs)
 
     target_chan_names = ['nuclei', 'F-actin']
-    orientations = ['xy', 'xz', 'xyz']
+    # orientations = ['xy', 'xz', 'xyz']
+    orientations = ['xy']
     metrics = ['corr', 'ssim']
 
     # output_path = '/CompMicro/Projects/virtualstaining/datastage_figures/kidney_p122'
